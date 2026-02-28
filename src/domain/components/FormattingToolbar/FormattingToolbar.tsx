@@ -10,9 +10,25 @@ import {
   FiMinus,
   FiAlignLeft,
   FiDroplet,
+  FiCheck,
 } from 'react-icons/fi';
-import { ColorPicker } from '@shared/components/ColorPicker/ColorPicker';
+import { HexColorPicker } from 'react-colorful';
 import styles from './FormattingToolbar.module.scss';
+
+const PRESET_COLORS = [
+  '#ef4444',
+  '#f97316',
+  '#eab308',
+  '#22c55e',
+  '#3b82f6',
+  '#8b5cf6',
+  '#ec4899',
+  '#14b8a6',
+  '#1f2937',
+  '#6b7280',
+  '#ffffff',
+  '#000000',
+];
 
 interface FormattingToolbarProps {
   textareaRef: RefObject<HTMLTextAreaElement | null>;
@@ -51,7 +67,20 @@ export function FormattingToolbar({
 }: FormattingToolbarProps) {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [textColorValue, setTextColorValue] = useState('#ef4444');
+  const [hexInput, setHexInput] = useState('#ef4444');
   const colorPickerRef = useRef<HTMLDivElement>(null);
+
+  const handleColorChange = useCallback((color: string) => {
+    setTextColorValue(color);
+    setHexInput(color);
+  }, []);
+
+  const handleHexInput = useCallback((value: string) => {
+    setHexInput(value);
+    if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+      setTextColorValue(value);
+    }
+  }, []);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -203,14 +232,44 @@ export function FormattingToolbar({
           </button>
           {showColorPicker && (
             <div className={styles.colorPopover}>
-              <ColorPicker color={textColorValue} onChange={setTextColorValue} />
-              <button
-                className={styles.applyColor}
-                onClick={() => insertColoredText(textColorValue)}
-                type="button"
-              >
-                Apply Color
-              </button>
+              <div className={styles.pickerHeader}>
+                <span>Text Color</span>
+                <div className={styles.pickerPreview} style={{ backgroundColor: textColorValue }} />
+              </div>
+              <HexColorPicker color={textColorValue} onChange={handleColorChange} />
+              <div className={styles.presets}>
+                {PRESET_COLORS.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    className={styles.presetSwatch}
+                    style={{ backgroundColor: c }}
+                    onClick={() => handleColorChange(c)}
+                    title={c}
+                    aria-label={c}
+                  >
+                    {c === textColorValue && <FiCheck className={styles.presetCheck} />}
+                  </button>
+                ))}
+              </div>
+              <div className={styles.hexRow}>
+                <span className={styles.hexHash}>#</span>
+                <input
+                  className={styles.hexInput}
+                  value={hexInput.replace('#', '')}
+                  onChange={(e) => handleHexInput(`#${e.target.value}`)}
+                  maxLength={6}
+                  spellCheck={false}
+                />
+                <button
+                  className={styles.applyColor}
+                  onClick={() => insertColoredText(textColorValue)}
+                  type="button"
+                  title="Apply color to selection"
+                >
+                  Apply
+                </button>
+              </div>
             </div>
           )}
         </div>

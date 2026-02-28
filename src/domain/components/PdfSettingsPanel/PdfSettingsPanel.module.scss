@@ -1,0 +1,67 @@
+.panel {
+  background-color: $color-neutral-0;
+  border: 1px solid $color-neutral-200;
+  border-radius: $radius-lg;
+  padding: $spacing-4;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-4;
+  overflow-y: auto;
+  max-height: 80vh;
+}
+
+.title {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: $color-neutral-800;
+  padding-bottom: $spacing-2;
+  border-bottom: 1px solid $color-neutral-100;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+}
+
+.sectionTitle {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-neutral-700;
+}
+
+.colorRow {
+  display: flex;
+  gap: $spacing-6;
+}
+
+.margins {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  color: $color-neutral-700;
+
+  input[type='checkbox'] {
+    width: 16px;
+    height: 16px;
+    accent-color: $color-primary-600;
+    cursor: pointer;
+  }
+}
+
+.pageNumberConfig {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  padding-left: $spacing-2;
+  border-left: 2px solid $color-primary-100;
+  margin-top: $spacing-1;
+}

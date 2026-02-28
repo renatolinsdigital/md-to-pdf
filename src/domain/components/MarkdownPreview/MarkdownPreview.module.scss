@@ -1,0 +1,186 @@
+.previewContainer {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  height: 100%;
+}
+
+.previewLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-neutral-500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.preview {
+  position: relative;
+  flex: 1;
+  border: 1px solid $color-neutral-200;
+  border-radius: $radius-lg;
+  overflow-y: auto;
+  box-shadow: $shadow-md;
+  min-height: 400px;
+  max-height: 70vh;
+
+  // Mimic A4 page proportions
+  aspect-ratio: auto;
+}
+
+.markdownContent {
+  // ── Markdown rendered element styles ──
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin-top: 1em;
+    margin-bottom: 0.5em;
+    line-height: $line-height-tight;
+    color: inherit;
+  }
+
+  h1 {
+    font-size: 2em;
+  }
+  h2 {
+    font-size: 1.5em;
+  }
+  h3 {
+    font-size: 1.25em;
+  }
+  h4 {
+    font-size: 1.1em;
+  }
+  h5 {
+    font-size: 1em;
+  }
+  h6 {
+    font-size: 0.9em;
+  }
+
+  p {
+    margin-bottom: 0.8em;
+    line-height: $line-height-relaxed;
+  }
+
+  strong {
+    font-weight: $font-weight-bold;
+  }
+
+  em {
+    font-style: italic;
+  }
+
+  del {
+    text-decoration: line-through;
+  }
+
+  a {
+    color: $color-primary-600;
+    text-decoration: underline;
+
+    &:hover {
+      color: $color-primary-700;
+    }
+  }
+
+  code {
+    font-family: $font-family-mono;
+    font-size: 0.9em;
+    background-color: rgba(0, 0, 0, 0.06);
+    padding: 0.2em 0.4em;
+    border-radius: $radius-sm;
+  }
+
+  pre {
+    margin-bottom: 1em;
+    border-radius: $radius-md;
+    overflow-x: auto;
+
+    code {
+      background: none;
+      padding: 0;
+    }
+  }
+
+  blockquote {
+    border-left: 3px solid $color-neutral-300;
+    padding-left: $spacing-4;
+    margin-left: 0;
+    margin-bottom: 1em;
+    color: $color-neutral-600;
+    font-style: italic;
+  }
+
+  ul,
+  ol {
+    padding-left: $spacing-6;
+    margin-bottom: 1em;
+  }
+
+  ul {
+    list-style-type: disc;
+  }
+
+  ol {
+    list-style-type: decimal;
+  }
+
+  li {
+    margin-bottom: 0.3em;
+    line-height: $line-height-relaxed;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1em;
+    font-size: 0.9em;
+
+    th,
+    td {
+      border: 1px solid $color-neutral-300;
+      padding: $spacing-2 $spacing-3;
+      text-align: left;
+    }
+
+    th {
+      background-color: rgba(0, 0, 0, 0.04);
+      font-weight: $font-weight-semibold;
+    }
+
+    tr:hover {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid $color-neutral-300;
+    margin: 1.5em 0;
+  }
+
+  img {
+    max-width: 100%;
+    border-radius: $radius-md;
+    margin-bottom: 1em;
+  }
+
+  // Task lists (GFM)
+  input[type='checkbox'] {
+    margin-right: $spacing-2;
+  }
+}
+
+.pageNumber {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #666;
+  font-family: $font-family-sans;
+}

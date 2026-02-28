@@ -1,0 +1,272 @@
+.home {
+  animation: fadeInUp $transition-slow;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ── Hero ──
+.hero {
+  display: flex;
+  align-items: center;
+  gap: $spacing-12;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $spacing-16 $spacing-6;
+
+  @include mobile {
+    flex-direction: column;
+    padding: $spacing-8 $spacing-4;
+    gap: $spacing-8;
+    text-align: center;
+  }
+}
+
+.heroContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-4;
+}
+
+.badge {
+  display: inline-block;
+  background-color: $color-primary-50;
+  color: $color-primary-700;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  padding: $spacing-1 $spacing-3;
+  border-radius: $radius-full;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  width: fit-content;
+
+  @include mobile {
+    align-self: center;
+  }
+}
+
+.heroTitle {
+  font-size: $font-size-4xl;
+  font-weight: $font-weight-bold;
+  line-height: 1.1;
+  color: $color-neutral-900;
+
+  @include mobile {
+    font-size: $font-size-3xl;
+  }
+}
+
+.highlight {
+  color: $color-primary-600;
+  position: relative;
+}
+
+.heroDescription {
+  font-size: $font-size-md;
+  color: $color-neutral-500;
+  line-height: $line-height-relaxed;
+  max-width: 520px;
+
+  @include mobile {
+    max-width: none;
+  }
+}
+
+.heroCta {
+  display: flex;
+  gap: $spacing-3;
+  margin-top: $spacing-2;
+
+  @include mobile {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+// ── Hero Visual ──
+.heroVisual {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+
+  @include mobile {
+    width: 100%;
+  }
+}
+
+.mockEditor {
+  width: 100%;
+  max-width: 420px;
+  border-radius: $radius-lg;
+  overflow: hidden;
+  box-shadow: $shadow-xl;
+  border: 1px solid $color-neutral-200;
+}
+
+.mockHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-3 $spacing-4;
+  background-color: $color-neutral-100;
+  border-bottom: 1px solid $color-neutral-200;
+}
+
+.mockDots {
+  display: flex;
+  gap: 6px;
+
+  span {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: $color-neutral-300;
+
+    &:first-child {
+      background-color: #ff5f57;
+    }
+    &:nth-child(2) {
+      background-color: #febc2e;
+    }
+    &:last-child {
+      background-color: #28c840;
+    }
+  }
+}
+
+.mockTitle {
+  font-size: $font-size-xs;
+  color: $color-neutral-500;
+  font-weight: $font-weight-medium;
+}
+
+.mockBody {
+  padding: $spacing-4;
+  background-color: $color-neutral-800;
+
+  code {
+    font-family: $font-family-mono;
+    font-size: $font-size-sm;
+    color: $color-neutral-200;
+    white-space: pre-wrap;
+    line-height: $line-height-relaxed;
+  }
+}
+
+// ── Features ──
+.features {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $spacing-16 $spacing-6;
+  text-align: center;
+
+  @include mobile {
+    padding: $spacing-8 $spacing-4;
+  }
+}
+
+.featuresTitle {
+  font-size: $font-size-3xl;
+  margin-bottom: $spacing-2;
+
+  @include mobile {
+    font-size: $font-size-2xl;
+  }
+}
+
+.featuresSubtitle {
+  font-size: $font-size-md;
+  color: $color-neutral-500;
+  margin-bottom: $spacing-10;
+}
+
+.featureGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-6;
+
+  @include tablet {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include mobile {
+    grid-template-columns: 1fr;
+    gap: $spacing-4;
+  }
+}
+
+.featureCard {
+  padding: $spacing-6;
+  border-radius: $radius-lg;
+  border: 1px solid $color-neutral-200;
+  background-color: $color-neutral-0;
+  text-align: left;
+  transition: all $transition-normal;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-lg;
+    border-color: $color-primary-200;
+  }
+}
+
+.featureIcon {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: $color-primary-50;
+  color: $color-primary-600;
+  border-radius: $radius-md;
+  font-size: $font-size-xl;
+  margin-bottom: $spacing-4;
+}
+
+.featureCardTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $spacing-2;
+}
+
+.featureCardDescription {
+  font-size: $font-size-sm;
+  color: $color-neutral-500;
+  line-height: $line-height-relaxed;
+}
+
+// ── CTA ──
+.cta {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: $spacing-16 $spacing-6;
+  text-align: center;
+
+  @include mobile {
+    padding: $spacing-8 $spacing-4;
+  }
+}
+
+.ctaTitle {
+  font-size: $font-size-3xl;
+  margin-bottom: $spacing-3;
+
+  @include mobile {
+    font-size: $font-size-2xl;
+  }
+}
+
+.ctaDescription {
+  font-size: $font-size-md;
+  color: $color-neutral-500;
+  margin-bottom: $spacing-6;
+}

@@ -1,0 +1,109 @@
+.container {
+  position: fixed;
+  top: $spacing-4;
+  right: $spacing-4;
+  z-index: $z-toast;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  max-width: 400px;
+  width: 100%;
+
+  @include mobile {
+    left: $spacing-4;
+    right: $spacing-4;
+    max-width: none;
+  }
+}
+
+.toast {
+  border-radius: $radius-md;
+  box-shadow: $shadow-lg;
+  overflow: hidden;
+  animation: slideIn 250ms ease forwards;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-3 $spacing-4;
+}
+
+.icon {
+  flex-shrink: 0;
+  font-size: $font-size-lg;
+}
+
+.message {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  line-height: $line-height-normal;
+}
+
+.progressBar {
+  height: 3px;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.progress {
+  height: 100%;
+  animation: shrink 3s linear forwards;
+}
+
+@keyframes shrink {
+  from {
+    width: 100%;
+  }
+  to {
+    width: 0%;
+  }
+}
+
+// ── Variants ──
+.success {
+  background-color: $color-success-light;
+  color: color.adjust($color-success, $lightness: -20%);
+
+  .progress {
+    background-color: $color-success;
+  }
+}
+
+.error {
+  background-color: $color-error-light;
+  color: color.adjust($color-error, $lightness: -15%);
+
+  .progress {
+    background-color: $color-error;
+  }
+}
+
+.warning {
+  background-color: $color-warning-light;
+  color: color.adjust($color-warning, $lightness: -25%);
+
+  .progress {
+    background-color: $color-warning;
+  }
+}
+
+.info {
+  background-color: $color-info-light;
+  color: color.adjust($color-info, $lightness: -15%);
+
+  .progress {
+    background-color: $color-info;
+  }
+}

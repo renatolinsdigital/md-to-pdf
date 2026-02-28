@@ -1,0 +1,99 @@
+.toolbar {
+  background-color: $color-neutral-0;
+  border: 1px solid $color-neutral-200;
+  border-radius: $radius-lg;
+  padding: $spacing-2;
+  overflow-x: auto;
+}
+
+.items {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: $spacing-1 $spacing-2;
+  border-radius: $radius-sm;
+  color: $color-neutral-600;
+  font-size: $font-size-xs;
+  transition: all $transition-fast;
+  white-space: nowrap;
+
+  svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background-color: $color-primary-50;
+    color: $color-primary-600;
+  }
+
+  &:active {
+    background-color: $color-primary-100;
+  }
+}
+
+.buttonLabel {
+  @include mobile {
+    display: none;
+  }
+}
+
+.colorWrapper {
+  position: relative;
+}
+
+.colorIndicator {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid $color-neutral-300;
+}
+
+.colorPopover {
+  position: absolute;
+  top: calc(100% + #{$spacing-2});
+  right: 0;
+  z-index: $z-dropdown;
+  background-color: $color-neutral-0;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-xl;
+  padding: $spacing-3;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  animation: dropIn 150ms ease;
+}
+
+@keyframes dropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.applyColor {
+  padding: $spacing-2;
+  border-radius: $radius-md;
+  background-color: $color-primary-600;
+  color: $color-neutral-0;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  transition: background-color $transition-fast;
+
+  &:hover {
+    background-color: $color-primary-700;
+  }
+}

@@ -1,0 +1,78 @@
+.wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+}
+
+.label {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  color: $color-neutral-600;
+}
+
+.swatch {
+  width: 36px;
+  height: 36px;
+  border-radius: $radius-md;
+  border: 2px solid $color-neutral-300;
+  cursor: pointer;
+  transition: border-color $transition-fast;
+  box-shadow: $shadow-sm;
+
+  &:hover {
+    border-color: $color-neutral-400;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary-400;
+    outline-offset: 2px;
+  }
+}
+
+.popover {
+  position: absolute;
+  top: calc(100% + #{$spacing-2});
+  left: 0;
+  z-index: $z-dropdown;
+  background-color: $color-neutral-0;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-xl;
+  padding: $spacing-3;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  animation: fadeIn 150ms ease;
+
+  :global(.react-colorful) {
+    width: 200px;
+    height: 160px;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hexInput {
+  width: 100%;
+  padding: $spacing-1 $spacing-2;
+  border: 1px solid $color-neutral-300;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  font-family: $font-family-mono;
+  text-align: center;
+  color: $color-neutral-700;
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary-500;
+  }
+}

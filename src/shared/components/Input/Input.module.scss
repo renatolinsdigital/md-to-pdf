@@ -1,0 +1,54 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-neutral-700;
+}
+
+.input {
+  padding: $spacing-2 $spacing-3;
+  border: 1px solid $color-neutral-300;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  color: $color-neutral-800;
+  background-color: $color-neutral-0;
+  transition: all $transition-fast;
+  height: 40px;
+
+  &::placeholder {
+    color: $color-neutral-400;
+  }
+
+  &:hover {
+    border-color: $color-neutral-400;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary-500;
+    box-shadow: 0 0 0 3px rgba($color-primary-500, 0.15);
+  }
+}
+
+.inputError {
+  border-color: $color-error;
+
+  &:focus {
+    border-color: $color-error;
+    box-shadow: 0 0 0 3px rgba($color-error, 0.15);
+  }
+}
+
+.error {
+  font-size: $font-size-xs;
+  color: $color-error;
+}

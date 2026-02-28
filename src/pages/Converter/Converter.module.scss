@@ -1,0 +1,150 @@
+.converter {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: $spacing-4 $spacing-4 $spacing-8;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  animation: fadeIn $transition-normal;
+  min-height: calc(100vh - 64px);
+
+  @include desktop {
+    padding: $spacing-4 $spacing-6 $spacing-8;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: $spacing-3;
+}
+
+.title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-neutral-900;
+
+  @include mobile {
+    font-size: $font-size-lg;
+  }
+}
+
+.actions {
+  display: flex;
+  gap: $spacing-2;
+}
+
+// ── Workspace Layout ──
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-4;
+  flex: 1;
+  min-height: 0;
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+// When settings pane is open, make it 3-column
+.workspace:has(.settingsPane) {
+  grid-template-columns: 1fr 1fr 280px;
+
+  @include tablet {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── Editor Pane ──
+.editorPane {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  min-height: 400px;
+}
+
+.paneLabel {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-neutral-500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.editor {
+  flex: 1;
+  min-height: 400px;
+  max-height: 70vh;
+  padding: $spacing-3;
+  border: 1px solid $color-neutral-200;
+  border-radius: $radius-lg;
+  font-family: $font-family-mono;
+  font-size: $font-size-sm;
+  line-height: $line-height-relaxed;
+  color: $color-neutral-800;
+  background-color: $color-neutral-0;
+  resize: none;
+  tab-size: 2;
+  transition: border-color $transition-fast;
+
+  &::placeholder {
+    color: $color-neutral-400;
+  }
+
+  &:hover {
+    border-color: $color-neutral-300;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary-500;
+    box-shadow: 0 0 0 3px rgba($color-primary-500, 0.1);
+  }
+}
+
+// ── Preview Pane ──
+.previewPane {
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+}
+
+// ── Settings Pane ──
+.settingsPane {
+  animation: slideIn 200ms ease;
+
+  @include tablet {
+    grid-column: 1 / -1;
+  }
+
+  @include mobile {
+    order: -1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

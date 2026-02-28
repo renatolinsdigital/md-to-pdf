@@ -1,3 +1,5 @@
+export type ImageAlignment = 'left' | 'center' | 'right';
+
 export interface ConverterSettings {
   backgroundColor: string;
   margins: {
@@ -14,6 +16,7 @@ export interface ConverterSettings {
     fontSize: number;
   };
   textColor: string;
+  imageAlignment: ImageAlignment;
 }
 
 const STORAGE_KEY = 'md-to-pdf-settings';
@@ -29,13 +32,20 @@ const defaultSettings: ConverterSettings = {
     fontSize: 10,
   },
   textColor: '#000000',
+  imageAlignment: 'left',
 };
 
 function loadSettings(): ConverterSettings {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return { ...defaultSettings, ...JSON.parse(stored) };
+      const parsed = JSON.parse(stored);
+      return {
+        ...defaultSettings,
+        ...parsed,
+        margins: { ...defaultSettings.margins, ...(parsed.margins ?? {}) },
+        pageNumber: { ...defaultSettings.pageNumber, ...(parsed.pageNumber ?? {}) },
+      };
     }
   } catch {
     // ignore parse errors

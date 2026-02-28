@@ -27,5 +27,7 @@ export function parseInlineStyle(styleString: string | undefined): Record<string
  * Convert mm to PDF points (1mm ≈ 2.835pt)
  */
 export function mmToPt(mm: number): number {
-  return mm * 2.835;
+  const val = Number(mm);
+  if (Number.isNaN(val)) return 0;
+  return val * 2.835;
 }

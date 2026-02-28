@@ -167,6 +167,20 @@
     max-width: 100%;
     border-radius: $radius-md;
     margin-bottom: 1em;
+    display: block;
+  }
+
+  &.imgLeft img {
+    margin-right: auto;
+  }
+
+  &.imgCenter img {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  &.imgRight img {
+    margin-left: auto;
   }
 
   // Task lists (GFM)

@@ -28,7 +28,7 @@ export function PdfDocument({ hastTree, settings }: PdfDocumentProps) {
   const marginLeft = mmToPt(settings.margins.left);
   const footerSpace = settings.pageNumber.enabled ? 30 : 0;
 
-  const pdfContent = hastToReactPdf(hastTree, settings.textColor);
+  const pdfContent = hastToReactPdf(hastTree, settings.textColor, settings.imageAlignment);
 
   return React.createElement(
     Document,

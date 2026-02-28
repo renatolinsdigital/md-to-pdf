@@ -22,7 +22,15 @@ export function MarkdownPreview({ markdown, settings }: MarkdownPreviewProps) {
     <div className={styles.previewContainer}>
       <div className={styles.previewLabel}>Preview</div>
       <div className={styles.preview} style={containerStyle}>
-        <div className={styles.markdownContent}>
+        <div
+          className={`${styles.markdownContent} ${
+            settings.imageAlignment === 'center'
+              ? styles.imgCenter
+              : settings.imageAlignment === 'right'
+                ? styles.imgRight
+                : styles.imgLeft
+          }`}
+        >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             rehypePlugins={[rehypeRaw]}

@@ -1,9 +1,42 @@
 import React from 'react';
 import { Text, View, Link, Image } from '@react-pdf/renderer';
 import type { Element, Root, RootContent, ElementContent } from 'hast';
+import { refractor } from 'refractor';
 import { parseInlineStyle } from './parseInlineStyle';
+import type { ImageAlignment } from '@domain/hooks/useConverterSettings';
 
 type HastNode = Root | RootContent | ElementContent;
+
+/** Tags whose rendered output is a <Text> (or nested inside one) and can live inside a parent <Text>. */
+const INLINE_TAGS = new Set([
+  'strong',
+  'b',
+  'em',
+  'i',
+  'del',
+  's',
+  'u',
+  'code',
+  'span',
+  'a',
+  'sup',
+  'sub',
+  'br',
+  'mark',
+  'abbr',
+  'small',
+  'big',
+  'input',
+]);
+
+/** Return true when every child of `node` can be placed inside a <Text>. */
+function allChildrenInline(node: Element): boolean {
+  return node.children.every((c) => {
+    if (c.type === 'text') return true;
+    if (c.type === 'element') return INLINE_TAGS.has(c.tagName);
+    return false;
+  });
+}
 
 const HEADING_SIZES: Record<string, number> = {
   h1: 28,
@@ -13,6 +46,64 @@ const HEADING_SIZES: Record<string, number> = {
   h5: 16,
   h6: 14,
 };
+
+// ── One Dark inspired token colours ──────────────────────────────
+const TOKEN_COLORS: Record<string, string> = {
+  keyword: '#c678dd',
+  string: '#98c379',
+  comment: '#5c6370',
+  number: '#d19a66',
+  boolean: '#d19a66',
+  function: '#61afef',
+  'function-variable': '#61afef',
+  'class-name': '#e5c07b',
+  operator: '#56b6c2',
+  punctuation: '#abb2bf',
+  property: '#e06c75',
+  tag: '#e06c75',
+  'attr-name': '#d19a66',
+  'attr-value': '#98c379',
+  regex: '#98c379',
+  builtin: '#e5c07b',
+  variable: '#e06c75',
+  constant: '#d19a66',
+  parameter: '#e06c75',
+  'template-string': '#98c379',
+  'template-punctuation': '#98c379',
+  interpolation: '#e06c75',
+  'triple-quoted-string': '#98c379',
+  'doc-comment': '#5c6370',
+  'literal-property': '#e06c75',
+  selector: '#e06c75',
+  atrule: '#c678dd',
+  important: '#c678dd',
+  deleted: '#e06c75',
+  inserted: '#98c379',
+  changed: '#e5c07b',
+};
+
+function tokenColor(classNames: string[]): string {
+  for (const cn of classNames) {
+    if (cn !== 'token' && TOKEN_COLORS[cn]) return TOKEN_COLORS[cn];
+  }
+  return '#abb2bf';
+}
+
+/** Walk refractor HAST and produce coloured <Text> spans. */
+function renderCodeHastNodes(nodes: (RootContent | ElementContent)[]): React.ReactNode[] {
+  const result: React.ReactNode[] = [];
+  for (const n of nodes) {
+    if (n.type === 'text') {
+      result.push(n.value);
+    } else if (n.type === 'element') {
+      const classes = (n.properties?.className ?? []) as string[];
+      const color = tokenColor(classes);
+      const inner = renderCodeHastNodes(n.children);
+      result.push(React.createElement(Text, { key: nextKey(), style: { color } }, ...inner));
+    }
+  }
+  return result;
+}
 
 let keyCounter = 0;
 function nextKey(): string {
@@ -26,9 +117,16 @@ export function resetKeyCounter() {
 /**
  * Recursively convert a HAST tree to @react-pdf/renderer elements.
  */
-export function hastToReactPdf(node: HastNode, textColor: string = '#000000'): React.ReactNode {
+export function hastToReactPdf(
+  node: HastNode,
+  textColor: string = '#000000',
+  imageAlignment: ImageAlignment = 'left',
+): React.ReactNode {
   if (node.type === 'root') {
-    return (node as Root).children.map((child) => hastToReactPdf(child, textColor));
+    const children = (node as Root).children.map((child) =>
+      hastToReactPdf(child, textColor, imageAlignment),
+    );
+    return blockChildren(children, textColor);
   }
 
   if (node.type === 'text') {
@@ -40,14 +138,46 @@ export function hastToReactPdf(node: HastNode, textColor: string = '#000000'): R
   }
 
   if (node.type === 'element') {
-    return renderElement(node, textColor);
+    return renderElement(node, textColor, imageAlignment);
   }
 
   return null;
 }
 
-function getChildrenPdf(node: Element, textColor: string): React.ReactNode[] {
-  return node.children.map((child) => hastToReactPdf(child, textColor));
+function getChildrenPdf(
+  node: Element,
+  textColor: string,
+  imageAlignment: ImageAlignment = 'left',
+): React.ReactNode[] {
+  return node.children.map((child) => hastToReactPdf(child, textColor, imageAlignment));
+}
+
+/**
+ * Wrap any raw string children in <Text> so they can safely appear inside a View.
+ * Whitespace-only strings are discarded.
+ */
+function blockChildren(children: React.ReactNode[], textColor: string): React.ReactNode[] {
+  return children
+    .flat()
+    .map((child) => {
+      if (typeof child === 'string') {
+        if (child.trim() === '') return null;
+        return React.createElement(
+          Text,
+          { key: nextKey(), style: { fontSize: 12, color: textColor } },
+          child,
+        );
+      }
+      if (typeof child === 'number') {
+        return React.createElement(
+          Text,
+          { key: nextKey(), style: { fontSize: 12, color: textColor } },
+          String(child),
+        );
+      }
+      return child;
+    })
+    .filter((c) => c != null);
 }
 
 function getInlineStyle(node: Element): Record<string, string> {
@@ -55,27 +185,43 @@ function getInlineStyle(node: Element): Record<string, string> {
   return parseInlineStyle(styleStr);
 }
 
-function renderElement(node: Element, textColor: string): React.ReactNode {
+const ALIGN_MAP: Record<ImageAlignment, string> = {
+  left: 'flex-start',
+  center: 'center',
+  right: 'flex-end',
+};
+
+function renderElement(
+  node: Element,
+  textColor: string,
+  imageAlignment: ImageAlignment = 'left',
+): React.ReactNode {
   const tag = node.tagName;
   const key = nextKey();
   const inlineStyle = getInlineStyle(node);
-  const children = getChildrenPdf(node, textColor);
+  const children = getChildrenPdf(node, textColor, imageAlignment);
 
-  // Heading
+  // Heading — keep together with at least some following content
   if (HEADING_SIZES[tag]) {
     return React.createElement(
-      Text,
+      View,
       {
         key,
-        style: {
-          fontSize: HEADING_SIZES[tag],
-          fontWeight: 700,
-          marginTop: 12,
-          marginBottom: 6,
-          color: inlineStyle.color || textColor,
+        style: { marginTop: 12, marginBottom: 6 },
+        minPresenceAhead: 40,
+        wrap: false,
+      } as React.ComponentProps<typeof View> & { key: string },
+      React.createElement(
+        Text,
+        {
+          style: {
+            fontSize: HEADING_SIZES[tag],
+            fontWeight: 700,
+            color: inlineStyle.color || textColor,
+          },
         },
-      },
-      ...children,
+        ...children,
+      ),
     );
   }
 
@@ -170,30 +316,52 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
     }
 
     case 'pre': {
-      // Code block: pre > code
+      // Code block: pre > code — extract language and syntax-highlight
+      const codeNode = node.children.find((c) => c.type === 'element' && c.tagName === 'code') as
+        | Element
+        | undefined;
       const codeContent = extractTextContent(node);
+      const langClass = ((codeNode?.properties?.className ?? []) as string[]).find((c) =>
+        c.startsWith('language-'),
+      );
+      const lang = langClass ? langClass.replace('language-', '') : '';
+
+      let codeChildren: React.ReactNode[];
+      if (lang) {
+        try {
+          const highlighted = refractor.highlight(codeContent, lang);
+          codeChildren = renderCodeHastNodes(highlighted.children);
+        } catch {
+          // Unsupported language — plain monochrome
+          codeChildren = [codeContent];
+        }
+      } else {
+        codeChildren = [codeContent];
+      }
+
       return React.createElement(
         View,
         {
           key,
           style: {
-            backgroundColor: '#1e1e1e',
+            backgroundColor: '#282c34',
             padding: 12,
             borderRadius: 4,
             marginBottom: 8,
           },
-        },
+          wrap: false,
+        } as React.ComponentProps<typeof View> & { key: string },
         React.createElement(
           Text,
           {
             style: {
               fontFamily: 'Courier',
               fontSize: 10,
-              color: '#d4d4d4',
+              color: '#abb2bf',
               lineHeight: 1.5,
             },
           },
-          codeContent,
+          ...codeChildren,
         ),
       );
     }
@@ -210,33 +378,32 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
             marginBottom: 8,
             marginLeft: 4,
           },
-        },
-        ...children,
+          wrap: false,
+        } as React.ComponentProps<typeof View> & { key: string },
+        ...blockChildren(children, textColor),
       );
 
-    case 'ul':
+    case 'ul': {
+      const listItems = node.children
+        .filter((c): c is Element => c.type === 'element' && c.tagName === 'li')
+        .map((child, i) => renderListItem(child, false, i + 1, textColor, imageAlignment));
       return React.createElement(
         View,
-        {
-          key,
-          style: { marginBottom: 8, marginLeft: 4 },
-        },
-        ...node.children.map((child, i) =>
-          renderListItem(child as Element, false, i + 1, textColor),
-        ),
+        { key, style: { marginBottom: 8, marginLeft: 4 } },
+        ...listItems,
       );
+    }
 
-    case 'ol':
+    case 'ol': {
+      const orderedItems = node.children
+        .filter((c): c is Element => c.type === 'element' && c.tagName === 'li')
+        .map((child, i) => renderListItem(child, true, i + 1, textColor, imageAlignment));
       return React.createElement(
         View,
-        {
-          key,
-          style: { marginBottom: 8, marginLeft: 4 },
-        },
-        ...node.children.map((child, i) =>
-          renderListItem(child as Element, true, i + 1, textColor),
-        ),
+        { key, style: { marginBottom: 8, marginLeft: 4 } },
+        ...orderedItems,
       );
+    }
 
     case 'li':
       // Should be handled by ul/ol above, but fallback
@@ -247,11 +414,7 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
           style: { flexDirection: 'row', marginBottom: 2 },
         },
         React.createElement(Text, { style: { width: 16, fontSize: 12, color: textColor } }, '• '),
-        React.createElement(
-          Text,
-          { style: { flex: 1, fontSize: 12, color: textColor } },
-          ...children,
-        ),
+        React.createElement(View, { style: { flex: 1 } }, ...blockChildren(children, textColor)),
       );
 
     case 'a': {
@@ -270,11 +433,22 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
     case 'img': {
       const src = String(node.properties?.src || '');
       if (!src) return null;
-      return React.createElement(Image, {
-        key,
-        src,
-        style: { maxWidth: '100%', marginBottom: 8 },
-      });
+      return React.createElement(
+        View,
+        {
+          key,
+          style: {
+            width: '100%',
+            marginBottom: 8,
+            alignItems: ALIGN_MAP[imageAlignment] as 'flex-start' | 'center' | 'flex-end',
+          },
+          wrap: false,
+        } as React.ComponentProps<typeof View> & { key: string },
+        React.createElement(Image, {
+          src,
+          style: { objectFit: 'contain' as const, maxWidth: '100%' },
+        }),
+      );
     }
 
     case 'hr':
@@ -292,7 +466,7 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
       return React.createElement(Text, { key }, '\n');
 
     case 'table':
-      return renderTable(node, key, textColor);
+      return renderTable(node, key, textColor, imageAlignment);
 
     case 'span': {
       const spanStyle: {
@@ -303,8 +477,10 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
       } = {};
       if (inlineStyle.color) spanStyle.color = inlineStyle.color;
       if (inlineStyle.backgroundColor) spanStyle.backgroundColor = inlineStyle.backgroundColor;
-      if (inlineStyle.fontWeight)
-        spanStyle.fontWeight = Number(inlineStyle.fontWeight) || undefined;
+      if (inlineStyle.fontWeight) {
+        const fw = Number(inlineStyle.fontWeight);
+        if (!Number.isNaN(fw)) spanStyle.fontWeight = fw;
+      }
       if (inlineStyle.fontStyle) spanStyle.fontStyle = inlineStyle.fontStyle;
       return React.createElement(
         Text,
@@ -314,7 +490,7 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
     }
 
     case 'div':
-      return React.createElement(View, { key }, ...children);
+      return React.createElement(View, { key }, ...blockChildren(children, textColor));
 
     case 'sup':
       return React.createElement(
@@ -337,7 +513,7 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
     case 'header':
     case 'footer':
     case 'nav':
-      return React.createElement(View, { key }, ...children);
+      return React.createElement(View, { key }, ...blockChildren(children, textColor));
 
     default:
       // For unknown tags, attempt to render children as text
@@ -357,6 +533,7 @@ function renderListItem(
   ordered: boolean,
   index: number,
   textColor: string,
+  imageAlignment: ImageAlignment = 'left',
 ): React.ReactNode {
   if (!node || node.type !== 'element' || node.tagName !== 'li') {
     return null;
@@ -364,15 +541,25 @@ function renderListItem(
 
   const key = nextKey();
   const bullet = ordered ? `${index}. ` : '• ';
-  const children = getChildrenPdf(node, textColor);
+  const children = getChildrenPdf(node, textColor, imageAlignment);
 
   // Check for task list item
   const checkbox = node.children.find(
     (c) => c.type === 'element' && c.tagName === 'input' && c.properties?.type === 'checkbox',
   ) as Element | undefined;
 
+  const inline = allChildrenInline(node);
+
   if (checkbox) {
     const checked = checkbox.properties?.checked;
+    const filtered = children.filter((c) => !(React.isValidElement(c) && c.type === 'input'));
+    const contentEl = inline
+      ? React.createElement(
+          Text,
+          { style: { flex: 1, fontSize: 12, lineHeight: 1.6, color: textColor } },
+          ...filtered,
+        )
+      : React.createElement(View, { style: { flex: 1 } }, ...blockChildren(filtered, textColor));
     return React.createElement(
       View,
       { key, style: { flexDirection: 'row', marginBottom: 2, marginLeft: 8 } },
@@ -381,27 +568,34 @@ function renderListItem(
         { style: { width: 20, fontSize: 12, color: textColor } },
         checked ? '☑ ' : '☐ ',
       ),
-      React.createElement(
-        Text,
-        { style: { flex: 1, fontSize: 12, lineHeight: 1.6, color: textColor } },
-        ...children.filter((c) => !(React.isValidElement(c) && c.type === 'input')),
-      ),
+      contentEl,
     );
   }
+
+  // When every child is inline-safe, use a single <Text> for horizontal flow;
+  // otherwise fall back to <View> which stacks children vertically.
+  const contentEl = inline
+    ? React.createElement(
+        Text,
+        { style: { flex: 1, fontSize: 12, lineHeight: 1.6, color: textColor } },
+        ...children,
+      )
+    : React.createElement(View, { style: { flex: 1 } }, ...blockChildren(children, textColor));
 
   return React.createElement(
     View,
     { key, style: { flexDirection: 'row', marginBottom: 2, marginLeft: 8 } },
     React.createElement(Text, { style: { width: 20, fontSize: 12, color: textColor } }, bullet),
-    React.createElement(
-      Text,
-      { style: { flex: 1, fontSize: 12, lineHeight: 1.6, color: textColor } },
-      ...children,
-    ),
+    contentEl,
   );
 }
 
-function renderTable(node: Element, key: string, textColor: string): React.ReactNode {
+function renderTable(
+  node: Element,
+  key: string,
+  textColor: string,
+  imageAlignment: ImageAlignment = 'left',
+): React.ReactNode {
   const rows: React.ReactNode[] = [];
   let isFirstRow = true;
 
@@ -424,7 +618,27 @@ function renderTable(node: Element, key: string, textColor: string): React.React
           .map((cell) => {
             const cellKey = nextKey();
             const isHeader = cell.tagName === 'th' || isFirstRow;
-            const cellChildren = getChildrenPdf(cell, textColor);
+            const cellChildren = getChildrenPdf(cell, textColor, imageAlignment);
+
+            // If all cell HAST children are inline, wrap in a single <Text>;
+            // otherwise use blockChildren for complex content.
+            const cellInline = allChildrenInline(cell);
+            const wrappedCellChildren = cellInline
+              ? [
+                  React.createElement(
+                    Text,
+                    {
+                      key: nextKey(),
+                      style: {
+                        fontSize: 10,
+                        fontWeight: isHeader ? 700 : 400,
+                        color: textColor,
+                      },
+                    },
+                    ...cellChildren,
+                  ),
+                ]
+              : blockChildren(cellChildren, textColor);
 
             return React.createElement(
               View,
@@ -439,17 +653,7 @@ function renderTable(node: Element, key: string, textColor: string): React.React
                   borderBottomColor: '#d1d5db',
                 },
               },
-              React.createElement(
-                Text,
-                {
-                  style: {
-                    fontSize: 10,
-                    fontWeight: isHeader ? 700 : 400,
-                    color: textColor,
-                  },
-                },
-                ...cellChildren,
-              ),
+              ...wrappedCellChildren,
             );
           });
 
@@ -462,7 +666,8 @@ function renderTable(node: Element, key: string, textColor: string): React.React
                 flexDirection: 'row',
                 backgroundColor: isFirstRow ? '#f3f4f6' : 'transparent',
               },
-            },
+              wrap: false,
+            } as React.ComponentProps<typeof View> & { key: string },
             ...cells,
           ),
         );

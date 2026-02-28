@@ -18,6 +18,12 @@ const PAGE_SIZE_OPTIONS = [
   { value: 'LEGAL', label: 'Legal (8.5 × 14 in)' },
 ];
 
+const IMAGE_ALIGN_OPTIONS = [
+  { value: 'left', label: 'Left' },
+  { value: 'center', label: 'Center' },
+  { value: 'right', label: 'Right' },
+];
+
 export function PdfSettingsPanel({
   settings,
   onUpdateSettings,
@@ -93,6 +99,19 @@ export function PdfSettingsPanel({
             unit="mm"
           />
         </div>
+      </div>
+
+      <div className={styles.section}>
+        <h4 className={styles.sectionTitle}>Image Alignment</h4>
+        <Select
+          options={IMAGE_ALIGN_OPTIONS}
+          value={settings.imageAlignment}
+          onChange={(value) =>
+            onUpdateSettings({
+              imageAlignment: value as ConverterSettings['imageAlignment'],
+            })
+          }
+        />
       </div>
 
       <div className={styles.section}>

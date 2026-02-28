@@ -32,5 +32,11 @@ export function registerFonts() {
   // Disable hyphenation
   Font.registerHyphenationCallback((word) => [word]);
 
+  // Enable emoji rendering via Twemoji images
+  Font.registerEmojiSource({
+    format: 'png',
+    url: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72/',
+  });
+
   fontsRegistered = true;
 }

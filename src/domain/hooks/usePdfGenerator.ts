@@ -4,6 +4,7 @@ import type { Root } from 'hast';
 import type { ConverterSettings } from './useConverterSettings';
 import { useToast } from './useToast';
 import { PdfDocument } from '@domain/components/PdfDocument/PdfDocument';
+import { resolveImages } from '@domain/helpers/resolveImages';
 
 export function usePdfGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -19,7 +20,10 @@ export function usePdfGenerator() {
       setIsGenerating(true);
 
       try {
-        const doc = PdfDocument({ hastTree, settings });
+        // Clone so the live preview HAST is never mutated, then resolve
+        // remote image URLs to base64 data URLs (avoids CORS in @react-pdf).
+        const resolvedTree = await resolveImages(structuredClone(hastTree));
+        const doc = PdfDocument({ hastTree: resolvedTree, settings });
         const blob = await pdf(doc).toBlob();
         const url = URL.createObjectURL(blob);
 

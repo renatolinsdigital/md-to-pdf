@@ -3,6 +3,7 @@
   border: 1px solid $color-neutral-200;
   border-radius: $radius-lg;
   padding: $spacing-2;
+  flex-shrink: 0;
 }
 
 .items {

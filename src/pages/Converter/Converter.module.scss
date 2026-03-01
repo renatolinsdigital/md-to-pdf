@@ -1,15 +1,16 @@
 .converter {
-  max-width: 1440px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: $spacing-4 $spacing-4 $spacing-8;
+  padding: $spacing-4 $spacing-4 $spacing-4;
   display: flex;
   flex-direction: column;
   gap: $spacing-3;
   animation: fadeIn $transition-normal;
-  min-height: calc(100vh - 64px);
+  height: calc(100vh - 64px);
+  overflow: hidden;
 
   @include desktop {
-    padding: $spacing-4 $spacing-6 $spacing-8;
+    padding: $spacing-4 $spacing-6 $spacing-4;
   }
 }
 
@@ -28,6 +29,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: $spacing-3;
+  flex-shrink: 0;
 }
 
 .title {
@@ -51,23 +53,11 @@
   grid-template-columns: 1fr 1fr;
   gap: $spacing-4;
   flex: 1;
-  min-height: 0;
+  min-height: 0; // critical for nested flex/grid overflow
 
   @include mobile {
     grid-template-columns: 1fr;
-  }
-}
-
-// When settings pane is open, make it 3-column
-.workspace:has(.settingsPane) {
-  grid-template-columns: 1fr 1fr 280px;
-
-  @include tablet {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  @include mobile {
-    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
   }
 }
 
@@ -76,7 +66,7 @@
   display: flex;
   flex-direction: column;
   gap: $spacing-2;
-  min-height: 400px;
+  min-height: 0; // allow shrinking inside grid
 }
 
 .paneLabel {
@@ -85,12 +75,29 @@
   color: $color-neutral-500;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  flex-shrink: 0;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  font-size: $font-size-sm;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .editor {
   flex: 1;
-  min-height: 400px;
-  max-height: 70vh;
+  min-height: 0; // allow shrinking
   padding: $spacing-3;
   border: 1px solid $color-neutral-200;
   border-radius: $radius-lg;
@@ -118,33 +125,134 @@
   }
 }
 
-// ── Preview Pane ──
-.previewPane {
+// ── PDF Pane ──
+.pdfPane {
   display: flex;
   flex-direction: column;
-  min-height: 400px;
+  gap: $spacing-2;
+  min-height: 0; // allow shrinking inside grid
 }
 
-// ── Settings Pane ──
-.settingsPane {
-  animation: slideIn 200ms ease;
-
-  @include tablet {
-    grid-column: 1 / -1;
-  }
-
-  @include mobile {
-    order: -1;
-  }
+.pdfViewer {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  border: none;
+  border-radius: $radius-lg;
+  background-color: $color-neutral-100;
+  animation: pdfFadeIn 300ms ease;
 }
 
-@keyframes slideIn {
+@keyframes pdfFadeIn {
   from {
-    opacity: 0;
-    transform: translateX(16px);
+    opacity: 0.4;
   }
   to {
     opacity: 1;
+  }
+}
+
+// Gentle dim while a new PDF is being generated
+.pdfRendering .pdfViewer,
+.pdfRendering .pdfPlaceholder {
+  opacity: 0.5;
+  transition: opacity 200ms ease;
+}
+
+.pdfPlaceholder {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid $color-neutral-200;
+  border-radius: $radius-lg;
+  background-color: $color-neutral-100;
+  color: $color-neutral-400;
+  font-size: $font-size-sm;
+}
+
+// ── Settings Overlay ──
+.overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: $z-modal;
+  animation: overlayIn 200ms ease;
+}
+
+@keyframes overlayIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.settingsDrawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 340px;
+  max-width: 90vw;
+  background-color: $color-neutral-0;
+  z-index: $z-modal + 1;
+  box-shadow: $shadow-xl;
+  display: flex;
+  flex-direction: column;
+  animation: drawerIn 250ms ease;
+  overflow-y: auto;
+}
+
+@keyframes drawerIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
     transform: translateX(0);
   }
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-4 $spacing-4 $spacing-3;
+  border-bottom: 1px solid $color-neutral-200;
+}
+
+.drawerTitle {
+  font-size: $font-size-md;
+  font-weight: $font-weight-bold;
+  color: $color-neutral-800;
+}
+
+.drawerClose {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: $color-neutral-500;
+  font-size: $font-size-lg;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-1;
+  border-radius: $radius-md;
+  transition:
+    background-color $transition-fast,
+    color $transition-fast;
+
+  &:hover {
+    background-color: $color-neutral-100;
+    color: $color-neutral-700;
+  }
+}
+
+.settingsDrawer > :last-child {
+  // Remove border and rounding from PdfSettingsPanel when inside drawer
+  border: none;
+  border-radius: 0;
+  flex: 1;
 }

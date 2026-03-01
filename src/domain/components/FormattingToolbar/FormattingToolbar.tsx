@@ -206,6 +206,26 @@ export function FormattingToolbar({
     [textareaRef, markdown, onMarkdownChange],
   );
 
+  const insertAtCursor = useCallback(
+    (text: string) => {
+      const textarea = textareaRef.current;
+      if (!textarea) return;
+
+      const pos = textarea.selectionStart;
+      const before = markdown.substring(0, pos);
+      const after = markdown.substring(pos);
+
+      onMarkdownChange(`${before}${text}${after}`);
+
+      requestAnimationFrame(() => {
+        textarea.focus();
+        const newPos = pos + text.length;
+        textarea.setSelectionRange(newPos, newPos);
+      });
+    },
+    [textareaRef, markdown, onMarkdownChange],
+  );
+
   const insertColoredText = useCallback(
     (color: string) => {
       wrapSelection(`<span style="color: ${color}">`, '</span>');
@@ -256,29 +276,12 @@ export function FormattingToolbar({
         case 'blockquote':
           insertAtLineStart('> ');
           break;
-        case 'hr': {
-          const textarea = textareaRef.current;
-          if (!textarea) return;
-          const start = textarea.selectionStart;
-          const before = markdown.substring(0, start);
-          const after = markdown.substring(start);
-          onMarkdownChange(`${before}\n---\n${after}`);
+        case 'hr':
+          insertAtCursor('\n---\n');
           break;
-        }
-        case 'br': {
-          const textarea = textareaRef.current;
-          if (!textarea) return;
-          const pos = textarea.selectionStart;
-          const before = markdown.substring(0, pos);
-          const after = markdown.substring(pos);
-          onMarkdownChange(`${before}<br>${after}`);
-          requestAnimationFrame(() => {
-            textarea.focus();
-            const newPos = pos + 4; // "<br>".length
-            textarea.setSelectionRange(newPos, newPos);
-          });
+        case 'br':
+          insertAtCursor('<br>');
           break;
-        }
         case 'alignLeft':
           wrapSelection('<div style="text-align: left">\n', '\n</div>');
           break;
@@ -290,7 +293,7 @@ export function FormattingToolbar({
           break;
       }
     },
-    [wrapSelection, insertAtLineStart, textareaRef, markdown, onMarkdownChange],
+    [wrapSelection, insertAtLineStart, insertAtCursor],
   );
 
   return (

@@ -54,42 +54,41 @@ function isElement(node: RootContent | ElementContent): node is Element {
   return node.type === 'element';
 }
 
-async function resolveNode(node: RootContent | ElementContent): Promise<void> {
+/** Collect all `<img>` element nodes from a subtree. */
+function collectImageNodes(node: RootContent | ElementContent, out: Element[]): void {
   if (!isElement(node)) return;
-
-  if (node.tagName === 'img' && typeof node.properties?.src === 'string') {
-    const src = node.properties.src;
-
-    // Strip SVG data-URLs — @react-pdf can't decode them
-    if (src.startsWith('data:image/svg')) {
-      node.properties.src = '';
-    } else if (/^https?:\/\//.test(src)) {
-      try {
-        const dataUrl = await fetchImageAsDataUrl(src);
-        if (isUsableDataUrl(dataUrl)) {
-          node.properties.src = dataUrl;
-        } else {
-          node.properties.src = '';
-        }
-      } catch {
-        node.properties.src = '';
-      }
-    }
-  }
-
+  if (node.tagName === 'img') out.push(node);
   for (const child of node.children) {
-    await resolveNode(child);
+    collectImageNodes(child, out);
+  }
+}
+
+async function resolveNode(node: Element): Promise<void> {
+  if (typeof node.properties?.src !== 'string') return;
+  const src = node.properties.src;
+
+  if (src.startsWith('data:image/svg')) {
+    node.properties.src = '';
+  } else if (/^https?:\/\//.test(src)) {
+    try {
+      const dataUrl = await fetchImageAsDataUrl(src);
+      node.properties.src = isUsableDataUrl(dataUrl) ? dataUrl : '';
+    } catch {
+      node.properties.src = '';
+    }
   }
 }
 
 /**
  * Walk a HAST tree and resolve all remote images to data-URL strings
  * so @react-pdf/renderer can embed them without CORS or format issues.
- * Mutates the tree in-place and returns it.
+ * Fetches are parallelized for performance. Mutates the tree in-place.
  */
 export async function resolveImages(tree: Root): Promise<Root> {
+  const images: Element[] = [];
   for (const child of tree.children) {
-    await resolveNode(child);
+    if (isElement(child)) collectImageNodes(child, images);
   }
+  await Promise.all(images.map(resolveNode));
   return tree;
 }

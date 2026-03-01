@@ -5,24 +5,7 @@ import type { ConverterSettings } from './useConverterSettings';
 import { useToast } from './useToast';
 import { PdfDocument } from '@domain/components/PdfDocument/PdfDocument';
 import { resolveImages } from '@domain/helpers/resolveImages';
-
-/** Remove all <img> elements from a HAST tree (returns a shallow clone). */
-function stripImages(tree: Root): Root {
-  function filterChildren(children: Root['children']): Root['children'] {
-    return children
-      .filter((node) => !(node.type === 'element' && node.tagName === 'img'))
-      .map((node) => {
-        if (node.type === 'element' && 'children' in node) {
-          return {
-            ...node,
-            children: filterChildren(node.children as Root['children']),
-          } as typeof node;
-        }
-        return node;
-      });
-  }
-  return { ...tree, children: filterChildren(tree.children) };
-}
+import { stripImages } from '@domain/helpers/stripImages';
 
 export function usePdfGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);

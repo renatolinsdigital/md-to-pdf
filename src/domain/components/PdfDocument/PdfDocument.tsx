@@ -13,12 +13,6 @@ interface PdfDocumentProps {
 
 registerFonts();
 
-const PAGE_SIZES = {
-  A4: 'A4' as const,
-  LETTER: 'LETTER' as const,
-  LEGAL: 'LEGAL' as const,
-};
-
 export function PdfDocument({ hastTree, settings }: PdfDocumentProps) {
   resetKeyCounter();
 
@@ -36,7 +30,7 @@ export function PdfDocument({ hastTree, settings }: PdfDocumentProps) {
     React.createElement(
       Page,
       {
-        size: PAGE_SIZES[settings.pageSize],
+        size: settings.pageSize,
         style: {
           backgroundColor: settings.backgroundColor,
           paddingTop: marginTop,
@@ -47,7 +41,7 @@ export function PdfDocument({ hastTree, settings }: PdfDocumentProps) {
           fontSize: 12,
         },
       },
-      React.createElement(View, { style: {} }, pdfContent),
+      React.createElement(View, null, pdfContent),
       settings.pageNumber.enabled
         ? React.createElement(Text, {
             fixed: true,

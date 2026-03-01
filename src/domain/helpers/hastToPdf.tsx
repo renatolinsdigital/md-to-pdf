@@ -294,24 +294,21 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
         ...children,
       );
 
-    case 'code': {
-      // Check if inside a <pre>
-      const isBlock = false; // inline code
+    case 'code':
       return React.createElement(
         Text,
         {
           key,
           style: {
             fontFamily: 'Courier',
-            fontSize: isBlock ? 10 : 11,
+            fontSize: 11,
             backgroundColor: '#f3f4f6',
             color: inlineStyle.color || '#1f2937',
-            padding: isBlock ? 0 : 1,
+            padding: 1,
           },
         },
         ...children,
       );
-    }
 
     case 'pre': {
       // Code block: pre > code — extract language and syntax-highlight

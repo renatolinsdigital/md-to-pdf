@@ -75,9 +75,9 @@ export function About() {
             <ul className={styles.techList}>
               <li>React + TypeScript</li>
               <li>Vite + SCSS Modules</li>
-              <li>react-markdown (preview)</li>
               <li>@react-pdf/renderer (PDF)</li>
               <li>unified + remark + rehype</li>
+              <li>pdfjs-dist (preview)</li>
               <li>react-colorful</li>
             </ul>
           </div>

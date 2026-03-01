@@ -1,3 +1,5 @@
+import { useState, useCallback } from 'react';
+
 export interface ConverterSettings {
   backgroundColor: string;
   margins: {
@@ -49,7 +51,13 @@ function loadSettings(): ConverterSettings {
   return defaultSettings;
 }
 
-import { useState, useCallback } from 'react';
+function persistSettings(settings: ConverterSettings): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  } catch {
+    // Storage full or unavailable — ignore
+  }
+}
 
 export function useConverterSettings() {
   const [settings, setSettings] = useState<ConverterSettings>(loadSettings);
@@ -57,26 +65,15 @@ export function useConverterSettings() {
   const updateSettings = useCallback((updates: Partial<ConverterSettings>) => {
     setSettings((prev) => {
       const next = { ...prev, ...updates };
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // ignore storage errors
-      }
+      persistSettings(next);
       return next;
     });
   }, []);
 
   const updateMargins = useCallback((marginUpdates: Partial<ConverterSettings['margins']>) => {
     setSettings((prev) => {
-      const next = {
-        ...prev,
-        margins: { ...prev.margins, ...marginUpdates },
-      };
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      } catch {
-        // ignore
-      }
+      const next = { ...prev, margins: { ...prev.margins, ...marginUpdates } };
+      persistSettings(next);
       return next;
     });
   }, []);
@@ -84,15 +81,8 @@ export function useConverterSettings() {
   const updatePageNumber = useCallback(
     (pageNumberUpdates: Partial<ConverterSettings['pageNumber']>) => {
       setSettings((prev) => {
-        const next = {
-          ...prev,
-          pageNumber: { ...prev.pageNumber, ...pageNumberUpdates },
-        };
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-        } catch {
-          // ignore
-        }
+        const next = { ...prev, pageNumber: { ...prev.pageNumber, ...pageNumberUpdates } };
+        persistSettings(next);
         return next;
       });
     },

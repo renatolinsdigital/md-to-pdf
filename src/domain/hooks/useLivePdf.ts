@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { pdf } from '@react-pdf/renderer';
 import type { Root } from 'hast';
 import type { ConverterSettings } from './useConverterSettings';
@@ -7,66 +7,81 @@ import { resolveImages } from '@domain/helpers/resolveImages';
 
 const DEBOUNCE_MS = 300;
 
+/** Remove all <img> elements from a HAST tree (returns a shallow clone). */
+function stripImages(tree: Root): Root {
+  function filterChildren(children: Root['children']): Root['children'] {
+    return children
+      .filter((node) => !(node.type === 'element' && node.tagName === 'img'))
+      .map((node) => {
+        if (node.type === 'element' && 'children' in node) {
+          return {
+            ...node,
+            children: filterChildren(node.children as Root['children']),
+          } as typeof node;
+        }
+        return node;
+      });
+  }
+  return { ...tree, children: filterChildren(tree.children) };
+}
+
 /**
- * Generates a live PDF blob from the current markdown HAST tree + settings.
- * Regeneration is debounced — it fires only after `DEBOUNCE_MS` of no changes.
+ * Generates a live PDF blob from the current HAST tree + settings.
+ * Debounces regeneration so rapid edits don't queue many renders.
+ *
+ * If PDF generation fails (e.g. an image the renderer can't decode),
+ * it automatically retries once with all images stripped from the tree.
  */
 export function useLivePdf(hastTree: Root | null, settings: ConverterSettings) {
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [isRendering, setIsRendering] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const generationRef = useRef(0);
+  const genRef = useRef(0);
 
-  const generate = useCallback(async (tree: Root | null, s: ConverterSettings, gen: number) => {
-    if (!tree) {
+  useEffect(() => {
+    const gen = ++genRef.current;
+
+    if (!hastTree) {
       setPdfBlob(null);
       setIsRendering(false);
       return;
     }
 
-    setIsRendering(true);
-    try {
+    const generate = async (tree: Root): Promise<Blob> => {
       const resolvedTree = await resolveImages(structuredClone(tree));
-      if (gen !== generationRef.current) return;
-
-      const doc = PdfDocument({ hastTree: resolvedTree, settings: s });
-      const blob = await pdf(doc).toBlob();
-      if (gen !== generationRef.current) return;
-
-      setPdfBlob(blob);
-    } catch (err) {
-      console.error('[useLivePdf] generation failed', err);
-    } finally {
-      if (gen === generationRef.current) {
-        setIsRendering(false);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    const gen = ++generationRef.current;
-
-    if (timerRef.current) clearTimeout(timerRef.current);
-
-    timerRef.current = setTimeout(() => {
-      generate(hastTree, settings, gen);
-    }, DEBOUNCE_MS);
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      const doc = PdfDocument({ hastTree: resolvedTree, settings });
+      return pdf(doc).toBlob();
     };
-  }, [hastTree, settings, generate]);
 
-  // Generate immediately on first mount (no debounce for initial render)
-  const initialRef = useRef(true);
-  useEffect(() => {
-    if (initialRef.current) {
-      initialRef.current = false;
-      const gen = ++generationRef.current;
-      generate(hastTree, settings, gen);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const run = async () => {
+      if (gen !== genRef.current) return;
+      setIsRendering(true);
+
+      try {
+        const blob = await generate(hastTree);
+        if (gen !== genRef.current) return;
+        setPdfBlob(blob);
+      } catch (err) {
+        console.warn('[useLivePdf] PDF generation failed, retrying without images:', err);
+        if (gen !== genRef.current) return;
+
+        // Retry without images — a broken image should never prevent the PDF from rendering
+        try {
+          const blob = await generate(stripImages(hastTree));
+          if (gen !== genRef.current) return;
+          setPdfBlob(blob);
+        } catch (retryErr) {
+          console.error('[useLivePdf] PDF generation failed even without images:', retryErr);
+        }
+      } finally {
+        if (gen === genRef.current) {
+          setIsRendering(false);
+        }
+      }
+    };
+
+    const timer = setTimeout(run, DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [hastTree, settings]);
 
   return { pdfBlob, isRendering };
 }

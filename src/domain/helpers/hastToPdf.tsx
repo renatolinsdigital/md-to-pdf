@@ -211,20 +211,33 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
   }
 
   switch (tag) {
-    case 'p':
-      return React.createElement(
-        Text,
-        {
-          key,
-          style: {
-            fontSize: 12,
-            marginBottom: 8,
-            lineHeight: 1.6,
-            color: inlineStyle.color || textColor,
+    case 'p': {
+      // When every child is inline-safe, render as <Text> for proper
+      // text wrapping; otherwise fall back to <View> so block-level
+      // children like <Image> (from ![alt](url)) don't nest inside
+      // a <Text> — which causes @react-pdf to produce NaN in layout.
+      const pInline = allChildrenInline(node);
+      if (pInline) {
+        return React.createElement(
+          Text,
+          {
+            key,
+            style: {
+              fontSize: 12,
+              marginBottom: 8,
+              lineHeight: 1.6,
+              color: inlineStyle.color || textColor,
+            },
           },
-        },
-        ...children,
+          ...children,
+        );
+      }
+      return React.createElement(
+        View,
+        { key, style: { marginBottom: 8 } },
+        ...blockChildren(children, textColor),
       );
+    }
 
     case 'strong':
     case 'b':
@@ -417,7 +430,15 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
 
     case 'img': {
       const src = String(node.properties?.src || '');
-      if (!src) return null;
+
+      // Skip empty, SVG, and non-JPEG/PNG data-URLs
+      if (!src || src.startsWith('data:image/svg') || /\.svg(\?|$)/i.test(src)) {
+        return null;
+      }
+      if (src.startsWith('data:') && !/^data:image\/(jpeg|png);base64,/.test(src)) {
+        return null;
+      }
+
       return React.createElement(
         View,
         {
@@ -430,8 +451,8 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
           wrap: false,
         } as React.ComponentProps<typeof View> & { key: string },
         React.createElement(Image, {
-          src,
-          style: { objectFit: 'contain' as const, maxWidth: '100%' },
+          src: src,
+          style: { width: '100%', objectFit: 'contain' as const },
         }),
       );
     }

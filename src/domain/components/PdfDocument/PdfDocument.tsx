@@ -47,7 +47,7 @@ export function PdfDocument({ hastTree, settings }: PdfDocumentProps) {
           fontSize: 12,
         },
       },
-      React.createElement(View, { style: { flex: 1 } }, pdfContent),
+      React.createElement(View, { style: {} }, pdfContent),
       settings.pageNumber.enabled
         ? React.createElement(Text, {
             fixed: true,

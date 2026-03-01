@@ -1,3 +1,4 @@
+import { Button } from '@shared/components/Button/Button';
 import { ColorPicker } from '@shared/components/ColorPicker/ColorPicker';
 import { Slider } from '@shared/components/Slider/Slider';
 import { Select } from '@shared/components/Select/Select';
@@ -10,6 +11,7 @@ interface PdfSettingsPanelProps {
   onUpdateSettings: (updates: Partial<ConverterSettings>) => void;
   onUpdateMargins: (updates: Partial<ConverterSettings['margins']>) => void;
   onUpdatePageNumber: (updates: Partial<ConverterSettings['pageNumber']>) => void;
+  onReset: () => void;
 }
 
 const PAGE_SIZE_OPTIONS = [
@@ -23,6 +25,7 @@ export function PdfSettingsPanel({
   onUpdateSettings,
   onUpdateMargins,
   onUpdatePageNumber,
+  onReset,
 }: PdfSettingsPanelProps) {
   return (
     <div className={styles.panel}>
@@ -131,6 +134,12 @@ export function PdfSettingsPanel({
             />
           </div>
         )}
+      </div>
+
+      <div className={styles.section}>
+        <Button variant="ghost" size="sm" onClick={onReset}>
+          Reset to Defaults
+        </Button>
       </div>
     </div>
   );

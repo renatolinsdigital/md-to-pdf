@@ -69,6 +69,13 @@
   min-height: 0; // allow shrinking inside grid
 }
 
+.paneHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
 .paneLabel {
   font-size: $font-size-xs;
   font-weight: $font-weight-semibold;
@@ -79,6 +86,27 @@
   align-items: center;
   gap: $spacing-2;
   flex-shrink: 0;
+}
+
+.exampleButton {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-1;
+  padding: 2px $spacing-2;
+  border-radius: $radius-sm;
+  font-size: $font-size-xs;
+  color: $color-neutral-500;
+  transition: all $transition-fast;
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  &:hover {
+    color: $color-primary-600;
+    background-color: $color-primary-50;
+  }
 }
 
 .editor {

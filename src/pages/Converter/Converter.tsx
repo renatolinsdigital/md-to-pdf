@@ -1,5 +1,5 @@
-import { useState, useRef, useCallback } from 'react';
-import { FiDownload, FiMenu, FiX } from 'react-icons/fi';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { FiDownload, FiMenu, FiX, FiFileText } from 'react-icons/fi';
 import { Button } from '@shared/components/Button/Button';
 import { FormattingToolbar } from '@domain/components/FormattingToolbar/FormattingToolbar';
 import { PdfSettingsPanel } from '@domain/components/PdfSettingsPanel/PdfSettingsPanel';
@@ -8,17 +8,37 @@ import { useConverterSettings } from '@domain/hooks/useConverterSettings';
 import { useMarkdownParser } from '@domain/hooks/useMarkdownParser';
 import { usePdfGenerator } from '@domain/hooks/usePdfGenerator';
 import { useLivePdf } from '@domain/hooks/useLivePdf';
-import { DEFAULT_MARKDOWN } from '@domain/helpers/defaultMarkdown';
+import { EXAMPLE_MARKDOWN } from '@domain/helpers/exampleMarkdown';
 import styles from './Converter.module.scss';
 
+const STORAGE_KEY = 'md-to-pdf-markdown';
+
+function loadMarkdown(): string {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ?? EXAMPLE_MARKDOWN;
+  } catch {
+    return EXAMPLE_MARKDOWN;
+  }
+}
+
 export function Converter() {
-  const [markdown, setMarkdown] = useState(DEFAULT_MARKDOWN);
+  const [markdown, setMarkdown] = useState(loadMarkdown);
   const [showSettings, setShowSettings] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { settings, updateSettings, updateMargins, updatePageNumber } = useConverterSettings();
+  const { settings, updateSettings, updateMargins, updatePageNumber, resetSettings } =
+    useConverterSettings();
   const hastTree = useMarkdownParser(markdown);
   const { generatePdf, isGenerating } = usePdfGenerator();
   const { pdfBlob, isRendering } = useLivePdf(hastTree, settings);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, markdown);
+    } catch {
+      // Storage full or unavailable — ignore
+    }
+  }, [markdown]);
 
   const handleGenerate = () => {
     generatePdf(hastTree, settings);
@@ -55,7 +75,18 @@ export function Converter() {
 
       <div className={styles.workspace}>
         <div className={styles.editorPane}>
-          <label className={styles.paneLabel}>Markdown</label>
+          <div className={styles.paneHeader}>
+            <label className={styles.paneLabel}>Markdown</label>
+            <button
+              type="button"
+              className={styles.exampleButton}
+              onClick={() => setMarkdown(EXAMPLE_MARKDOWN)}
+              title="Load example markdown that showcases all features"
+            >
+              <FiFileText />
+              Load Example
+            </button>
+          </div>
           <textarea
             ref={textareaRef}
             className={styles.editor}
@@ -91,6 +122,7 @@ export function Converter() {
               onUpdateSettings={updateSettings}
               onUpdateMargins={updateMargins}
               onUpdatePageNumber={updatePageNumber}
+              onReset={resetSettings}
             />
           </div>
         </>

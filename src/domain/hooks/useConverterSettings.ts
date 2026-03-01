@@ -99,5 +99,14 @@ export function useConverterSettings() {
     [],
   );
 
-  return { settings, updateSettings, updateMargins, updatePageNumber };
+  const resetSettings = useCallback(() => {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
+    setSettings(defaultSettings);
+  }, []);
+
+  return { settings, updateSettings, updateMargins, updatePageNumber, resetSettings };
 }

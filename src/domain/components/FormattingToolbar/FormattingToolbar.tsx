@@ -46,39 +46,83 @@ interface ToolbarItem {
   shortLabel?: string;
 }
 
-const TOOLBAR_ITEMS: ToolbarItem[] = [
-  { icon: FiBold, label: 'Bold', actionType: 'bold' },
-  { icon: FiItalic, label: 'Italic', actionType: 'italic' },
-  { icon: FiMinus, label: 'Strikethrough', shortLabel: 'Strike', actionType: 'strikethrough' },
-  { icon: FiType, label: 'Heading 1', shortLabel: 'H1', actionType: 'h1' },
-  { icon: FiType, label: 'Heading 2', shortLabel: 'H2', actionType: 'h2' },
-  { icon: FiType, label: 'Heading 3', shortLabel: 'H3', actionType: 'h3' },
-  { icon: FiList, label: 'Bullet List', shortLabel: 'UL', actionType: 'ul' },
-  { icon: FiList, label: 'Numbered List', shortLabel: 'OL', actionType: 'ol' },
-  { icon: FiCode, label: 'Inline Code', actionType: 'inlineCode' },
-  { icon: FiCode, label: 'Code Block', actionType: 'codeBlock' },
-  { icon: FiLink, label: 'Link', actionType: 'link' },
-  { icon: FiImage, label: 'Image', actionType: 'image' },
-  { icon: FiAlignLeft, label: 'Blockquote', shortLabel: 'Quote', actionType: 'blockquote' },
-  { icon: FiMinus, label: 'Horizontal Rule', shortLabel: 'HR', actionType: 'hr' },
-  { icon: FiCornerDownLeft, label: 'Line Break', shortLabel: 'BR', actionType: 'br' },
+interface ToolbarGroup {
+  label: string;
+  items: ToolbarItem[];
+}
+
+const TOOLBAR_ROW1: ToolbarGroup[] = [
   {
-    icon: FiAlignLeft,
-    label: 'Align Left — wraps content in a container that aligns images and text to the left',
-    shortLabel: '⬅ Left',
-    actionType: 'alignLeft',
+    label: 'Text',
+    items: [
+      { icon: FiBold, label: 'Bold', actionType: 'bold' },
+      { icon: FiItalic, label: 'Italic', actionType: 'italic' },
+      { icon: FiMinus, label: 'Strikethrough', shortLabel: 'Strike', actionType: 'strikethrough' },
+    ],
   },
   {
-    icon: FiAlignCenter,
-    label: 'Align Center — wraps content in a container that centers images and text',
-    shortLabel: '↔ Center',
-    actionType: 'alignCenter',
+    label: 'Headings',
+    items: [
+      { icon: FiType, label: 'Heading 1', shortLabel: 'H1', actionType: 'h1' },
+      { icon: FiType, label: 'Heading 2', shortLabel: 'H2', actionType: 'h2' },
+      { icon: FiType, label: 'Heading 3', shortLabel: 'H3', actionType: 'h3' },
+    ],
   },
   {
-    icon: FiAlignRight,
-    label: 'Align Right — wraps content in a container that aligns images and text to the right',
-    shortLabel: '➡ Right',
-    actionType: 'alignRight',
+    label: 'Lists',
+    items: [
+      { icon: FiList, label: 'Bullet List', shortLabel: 'UL', actionType: 'ul' },
+      { icon: FiList, label: 'Numbered List', shortLabel: 'OL', actionType: 'ol' },
+    ],
+  },
+  {
+    label: 'Code',
+    items: [
+      { icon: FiCode, label: 'Inline Code', actionType: 'inlineCode' },
+      { icon: FiCode, label: 'Code Block', actionType: 'codeBlock' },
+    ],
+  },
+  {
+    label: 'Insert',
+    items: [
+      { icon: FiLink, label: 'Link', actionType: 'link' },
+      { icon: FiImage, label: 'Image', actionType: 'image' },
+    ],
+  },
+  {
+    label: 'Blocks',
+    items: [
+      { icon: FiAlignLeft, label: 'Blockquote', shortLabel: 'Quote', actionType: 'blockquote' },
+      { icon: FiMinus, label: 'Horizontal Rule', shortLabel: 'HR', actionType: 'hr' },
+      { icon: FiCornerDownLeft, label: 'Line Break', shortLabel: 'BR', actionType: 'br' },
+    ],
+  },
+];
+
+const TOOLBAR_ROW2: ToolbarGroup[] = [
+  {
+    label: 'Alignment',
+    items: [
+      {
+        icon: FiAlignLeft,
+        label: 'Align Left — wraps content in a container that aligns images and text to the left',
+        shortLabel: '⬅ Left',
+        actionType: 'alignLeft',
+      },
+      {
+        icon: FiAlignCenter,
+        label: 'Align Center — wraps content in a container that centers images and text',
+        shortLabel: '↔ Center',
+        actionType: 'alignCenter',
+      },
+      {
+        icon: FiAlignRight,
+        label:
+          'Align Right — wraps content in a container that aligns images and text to the right',
+        shortLabel: '➡ Right',
+        actionType: 'alignRight',
+      },
+    ],
   },
 ];
 
@@ -251,72 +295,99 @@ export function FormattingToolbar({
 
   return (
     <div className={styles.toolbar}>
-      <div className={styles.items}>
-        {TOOLBAR_ITEMS.map((item) => (
-          <button
-            key={item.label}
-            className={styles.button}
-            onClick={() => handleAction(item.actionType)}
-            title={item.label}
-            type="button"
-          >
-            <item.icon />
-            <span className={styles.buttonLabel}>{item.shortLabel || item.label}</span>
-          </button>
+      <div className={styles.row}>
+        {TOOLBAR_ROW1.map((group) => (
+          <div key={group.label} className={styles.group}>
+            {group.items.map((item) => (
+              <button
+                key={item.actionType}
+                className={styles.button}
+                onClick={() => handleAction(item.actionType)}
+                title={item.label}
+                type="button"
+              >
+                <item.icon />
+                <span className={styles.buttonLabel}>{item.shortLabel || item.label}</span>
+              </button>
+            ))}
+          </div>
+        ))}
+      </div>
+      <div className={styles.row}>
+        {TOOLBAR_ROW2.map((group) => (
+          <div key={group.label} className={styles.group}>
+            {group.items.map((item) => (
+              <button
+                key={item.actionType}
+                className={styles.button}
+                onClick={() => handleAction(item.actionType)}
+                title={item.label}
+                type="button"
+              >
+                <item.icon />
+                <span className={styles.buttonLabel}>{item.shortLabel || item.label}</span>
+              </button>
+            ))}
+          </div>
         ))}
 
-        <div className={styles.colorWrapper} ref={colorPickerRef}>
-          <button
-            className={styles.button}
-            onClick={() => setShowColorPicker(!showColorPicker)}
-            title="Text Color"
-            type="button"
-          >
-            <FiDroplet />
-            <span className={styles.colorIndicator} style={{ backgroundColor: textColorValue }} />
-          </button>
-          {showColorPicker && (
-            <div className={styles.colorPopover}>
-              <div className={styles.pickerHeader}>
-                <span>Text Color</span>
-                <div className={styles.pickerPreview} style={{ backgroundColor: textColorValue }} />
-              </div>
-              <HexColorPicker color={textColorValue} onChange={handleColorChange} />
-              <div className={styles.presets}>
-                {PRESET_COLORS.map((c) => (
+        <div className={styles.group}>
+          <div className={styles.colorWrapper} ref={colorPickerRef}>
+            <button
+              className={styles.button}
+              onClick={() => setShowColorPicker(!showColorPicker)}
+              title="Text Color"
+              type="button"
+            >
+              <FiDroplet />
+              <span className={styles.colorIndicator} style={{ backgroundColor: textColorValue }} />
+            </button>
+            {showColorPicker && (
+              <div className={styles.colorPopover}>
+                <div className={styles.pickerHeader}>
+                  <span>Text Color</span>
+                  <div
+                    className={styles.pickerPreview}
+                    style={{ backgroundColor: textColorValue }}
+                  />
+                </div>
+                <HexColorPicker color={textColorValue} onChange={handleColorChange} />
+                <div className={styles.presets}>
+                  {PRESET_COLORS.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={styles.presetSwatch}
+                      style={{ backgroundColor: c }}
+                      onClick={() => handleColorChange(c)}
+                      title={c}
+                      aria-label={c}
+                    >
+                      {c === textColorValue && <FiCheck className={styles.presetCheck} />}
+                    </button>
+                  ))}
+                </div>
+                <div className={styles.hexRow}>
+                  <span className={styles.hexHash}>#</span>
+                  <input
+                    className={styles.hexInput}
+                    value={hexInput.replace('#', '')}
+                    onChange={(e) => handleHexInput(`#${e.target.value}`)}
+                    maxLength={6}
+                    spellCheck={false}
+                  />
                   <button
-                    key={c}
+                    className={styles.applyColor}
+                    onClick={() => insertColoredText(textColorValue)}
                     type="button"
-                    className={styles.presetSwatch}
-                    style={{ backgroundColor: c }}
-                    onClick={() => handleColorChange(c)}
-                    title={c}
-                    aria-label={c}
+                    title="Apply color to selection"
                   >
-                    {c === textColorValue && <FiCheck className={styles.presetCheck} />}
+                    Apply
                   </button>
-                ))}
+                </div>
               </div>
-              <div className={styles.hexRow}>
-                <span className={styles.hexHash}>#</span>
-                <input
-                  className={styles.hexInput}
-                  value={hexInput.replace('#', '')}
-                  onChange={(e) => handleHexInput(`#${e.target.value}`)}
-                  maxLength={6}
-                  spellCheck={false}
-                />
-                <button
-                  className={styles.applyColor}
-                  onClick={() => insertColoredText(textColorValue)}
-                  type="button"
-                  title="Apply color to selection"
-                >
-                  Apply
-                </button>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

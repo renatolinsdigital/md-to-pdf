@@ -9,8 +9,11 @@ import {
   FiImage,
   FiMinus,
   FiAlignLeft,
+  FiAlignCenter,
+  FiAlignRight,
   FiDroplet,
   FiCheck,
+  FiCornerDownLeft,
 } from 'react-icons/fi';
 import { HexColorPicker } from 'react-colorful';
 import styles from './FormattingToolbar.module.scss';
@@ -58,6 +61,25 @@ const TOOLBAR_ITEMS: ToolbarItem[] = [
   { icon: FiImage, label: 'Image', actionType: 'image' },
   { icon: FiAlignLeft, label: 'Blockquote', shortLabel: 'Quote', actionType: 'blockquote' },
   { icon: FiMinus, label: 'Horizontal Rule', shortLabel: 'HR', actionType: 'hr' },
+  { icon: FiCornerDownLeft, label: 'Line Break', shortLabel: 'BR', actionType: 'br' },
+  {
+    icon: FiAlignLeft,
+    label: 'Align Left — wraps content in a container that aligns images and text to the left',
+    shortLabel: '⬅ Left',
+    actionType: 'alignLeft',
+  },
+  {
+    icon: FiAlignCenter,
+    label: 'Align Center — wraps content in a container that centers images and text',
+    shortLabel: '↔ Center',
+    actionType: 'alignCenter',
+  },
+  {
+    icon: FiAlignRight,
+    label: 'Align Right — wraps content in a container that aligns images and text to the right',
+    shortLabel: '➡ Right',
+    actionType: 'alignRight',
+  },
 ];
 
 export function FormattingToolbar({
@@ -199,6 +221,29 @@ export function FormattingToolbar({
           onMarkdownChange(`${before}\n---\n${after}`);
           break;
         }
+        case 'br': {
+          const textarea = textareaRef.current;
+          if (!textarea) return;
+          const pos = textarea.selectionStart;
+          const before = markdown.substring(0, pos);
+          const after = markdown.substring(pos);
+          onMarkdownChange(`${before}<br>${after}`);
+          requestAnimationFrame(() => {
+            textarea.focus();
+            const newPos = pos + 4; // "<br>".length
+            textarea.setSelectionRange(newPos, newPos);
+          });
+          break;
+        }
+        case 'alignLeft':
+          wrapSelection('<div style="text-align: left">\n', '\n</div>');
+          break;
+        case 'alignCenter':
+          wrapSelection('<div style="text-align: center">\n', '\n</div>');
+          break;
+        case 'alignRight':
+          wrapSelection('<div style="text-align: right">\n', '\n</div>');
+          break;
       }
     },
     [wrapSelection, insertAtLineStart, textareaRef, markdown, onMarkdownChange],

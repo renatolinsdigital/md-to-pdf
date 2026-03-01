@@ -3,7 +3,6 @@ import { Text, View, Link, Image } from '@react-pdf/renderer';
 import type { Element, Root, RootContent, ElementContent } from 'hast';
 import { refractor } from 'refractor';
 import { parseInlineStyle } from './parseInlineStyle';
-import type { ImageAlignment } from '@domain/hooks/useConverterSettings';
 
 type HastNode = Root | RootContent | ElementContent;
 
@@ -117,15 +116,9 @@ export function resetKeyCounter() {
 /**
  * Recursively convert a HAST tree to @react-pdf/renderer elements.
  */
-export function hastToReactPdf(
-  node: HastNode,
-  textColor: string = '#000000',
-  imageAlignment: ImageAlignment = 'left',
-): React.ReactNode {
+export function hastToReactPdf(node: HastNode, textColor: string = '#000000'): React.ReactNode {
   if (node.type === 'root') {
-    const children = (node as Root).children.map((child) =>
-      hastToReactPdf(child, textColor, imageAlignment),
-    );
+    const children = (node as Root).children.map((child) => hastToReactPdf(child, textColor));
     return blockChildren(children, textColor);
   }
 
@@ -138,18 +131,14 @@ export function hastToReactPdf(
   }
 
   if (node.type === 'element') {
-    return renderElement(node, textColor, imageAlignment);
+    return renderElement(node, textColor);
   }
 
   return null;
 }
 
-function getChildrenPdf(
-  node: Element,
-  textColor: string,
-  imageAlignment: ImageAlignment = 'left',
-): React.ReactNode[] {
-  return node.children.map((child) => hastToReactPdf(child, textColor, imageAlignment));
+function getChildrenPdf(node: Element, textColor: string): React.ReactNode[] {
+  return node.children.map((child) => hastToReactPdf(child, textColor));
 }
 
 /**
@@ -185,21 +174,17 @@ function getInlineStyle(node: Element): Record<string, string> {
   return parseInlineStyle(styleStr);
 }
 
-const ALIGN_MAP: Record<ImageAlignment, string> = {
+const TEXT_ALIGN_MAP: Record<string, 'flex-start' | 'center' | 'flex-end'> = {
   left: 'flex-start',
   center: 'center',
   right: 'flex-end',
 };
 
-function renderElement(
-  node: Element,
-  textColor: string,
-  imageAlignment: ImageAlignment = 'left',
-): React.ReactNode {
+function renderElement(node: Element, textColor: string): React.ReactNode {
   const tag = node.tagName;
   const key = nextKey();
   const inlineStyle = getInlineStyle(node);
-  const children = getChildrenPdf(node, textColor, imageAlignment);
+  const children = getChildrenPdf(node, textColor);
 
   // Heading — keep together with at least some following content
   if (HEADING_SIZES[tag]) {
@@ -386,7 +371,7 @@ function renderElement(
     case 'ul': {
       const listItems = node.children
         .filter((c): c is Element => c.type === 'element' && c.tagName === 'li')
-        .map((child, i) => renderListItem(child, false, i + 1, textColor, imageAlignment));
+        .map((child, i) => renderListItem(child, false, i + 1, textColor));
       return React.createElement(
         View,
         { key, style: { marginBottom: 8, marginLeft: 4 } },
@@ -397,7 +382,7 @@ function renderElement(
     case 'ol': {
       const orderedItems = node.children
         .filter((c): c is Element => c.type === 'element' && c.tagName === 'li')
-        .map((child, i) => renderListItem(child, true, i + 1, textColor, imageAlignment));
+        .map((child, i) => renderListItem(child, true, i + 1, textColor));
       return React.createElement(
         View,
         { key, style: { marginBottom: 8, marginLeft: 4 } },
@@ -440,7 +425,7 @@ function renderElement(
           style: {
             width: '100%',
             marginBottom: 8,
-            alignItems: ALIGN_MAP[imageAlignment] as 'flex-start' | 'center' | 'flex-end',
+            alignItems: 'flex-start',
           },
           wrap: false,
         } as React.ComponentProps<typeof View> & { key: string },
@@ -466,7 +451,7 @@ function renderElement(
       return React.createElement(Text, { key }, '\n');
 
     case 'table':
-      return renderTable(node, key, textColor, imageAlignment);
+      return renderTable(node, key, textColor);
 
     case 'span': {
       const spanStyle: {
@@ -489,8 +474,18 @@ function renderElement(
       );
     }
 
-    case 'div':
-      return React.createElement(View, { key }, ...blockChildren(children, textColor));
+    case 'div': {
+      const align = inlineStyle.textAlign;
+      const divStyle: Record<string, string> = {};
+      if (align && TEXT_ALIGN_MAP[align]) {
+        divStyle.alignItems = TEXT_ALIGN_MAP[align];
+      }
+      return React.createElement(
+        View,
+        { key, style: divStyle },
+        ...blockChildren(children, textColor),
+      );
+    }
 
     case 'sup':
       return React.createElement(
@@ -533,7 +528,6 @@ function renderListItem(
   ordered: boolean,
   index: number,
   textColor: string,
-  imageAlignment: ImageAlignment = 'left',
 ): React.ReactNode {
   if (!node || node.type !== 'element' || node.tagName !== 'li') {
     return null;
@@ -541,7 +535,7 @@ function renderListItem(
 
   const key = nextKey();
   const bullet = ordered ? `${index}. ` : '• ';
-  const children = getChildrenPdf(node, textColor, imageAlignment);
+  const children = getChildrenPdf(node, textColor);
 
   // Check for task list item
   const checkbox = node.children.find(
@@ -590,12 +584,7 @@ function renderListItem(
   );
 }
 
-function renderTable(
-  node: Element,
-  key: string,
-  textColor: string,
-  imageAlignment: ImageAlignment = 'left',
-): React.ReactNode {
+function renderTable(node: Element, key: string, textColor: string): React.ReactNode {
   const rows: React.ReactNode[] = [];
   let isFirstRow = true;
 
@@ -618,7 +607,7 @@ function renderTable(
           .map((cell) => {
             const cellKey = nextKey();
             const isHeader = cell.tagName === 'th' || isFirstRow;
-            const cellChildren = getChildrenPdf(cell, textColor, imageAlignment);
+            const cellChildren = getChildrenPdf(cell, textColor);
 
             // If all cell HAST children are inline, wrap in a single <Text>;
             // otherwise use blockChildren for complex content.

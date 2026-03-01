@@ -8,24 +8,18 @@ import { resolveImages } from '@domain/helpers/resolveImages';
 const DEBOUNCE_MS = 300;
 
 /**
- * Generates a live PDF blob URL from the current markdown HAST tree + settings.
+ * Generates a live PDF blob from the current markdown HAST tree + settings.
  * Regeneration is debounced — it fires only after `DEBOUNCE_MS` of no changes.
  */
 export function useLivePdf(hastTree: Root | null, settings: ConverterSettings) {
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
   const [isRendering, setIsRendering] = useState(false);
-  const prevUrlRef = useRef<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const generationRef = useRef(0); // track latest generation to discard stale results
+  const generationRef = useRef(0);
 
   const generate = useCallback(async (tree: Root | null, s: ConverterSettings, gen: number) => {
     if (!tree) {
-      // No content — clear the viewer
-      if (prevUrlRef.current) {
-        URL.revokeObjectURL(prevUrlRef.current);
-        prevUrlRef.current = null;
-      }
-      setPdfUrl(null);
+      setPdfBlob(null);
       setIsRendering(false);
       return;
     }
@@ -33,23 +27,13 @@ export function useLivePdf(hastTree: Root | null, settings: ConverterSettings) {
     setIsRendering(true);
     try {
       const resolvedTree = await resolveImages(structuredClone(tree));
-
-      // Discard if a newer generation was queued while we were working
       if (gen !== generationRef.current) return;
 
       const doc = PdfDocument({ hastTree: resolvedTree, settings: s });
       const blob = await pdf(doc).toBlob();
-
       if (gen !== generationRef.current) return;
 
-      const url = URL.createObjectURL(blob);
-
-      // Revoke old URL
-      if (prevUrlRef.current) {
-        URL.revokeObjectURL(prevUrlRef.current);
-      }
-      prevUrlRef.current = url;
-      setPdfUrl(url);
+      setPdfBlob(blob);
     } catch (err) {
       console.error('[useLivePdf] generation failed', err);
     } finally {
@@ -60,7 +44,6 @@ export function useLivePdf(hastTree: Root | null, settings: ConverterSettings) {
   }, []);
 
   useEffect(() => {
-    // Bump generation counter and schedule debounced generation
     const gen = ++generationRef.current;
 
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -85,14 +68,5 @@ export function useLivePdf(hastTree: Root | null, settings: ConverterSettings) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (prevUrlRef.current) {
-        URL.revokeObjectURL(prevUrlRef.current);
-      }
-    };
-  }, []);
-
-  return { pdfUrl, isRendering };
+  return { pdfBlob, isRendering };
 }

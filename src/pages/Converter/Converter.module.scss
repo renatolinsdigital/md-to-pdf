@@ -81,26 +81,12 @@
   flex-shrink: 0;
 }
 
-.spinner {
-  animation: spin 1s linear infinite;
-  font-size: $font-size-sm;
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .editor {
   flex: 1;
   min-height: 0; // allow shrinking
   padding: $spacing-3;
   border: 1px solid $color-neutral-200;
-  border-radius: $radius-lg;
+  border-radius: 0;
   font-family: $font-family-mono;
   font-size: $font-size-sm;
   line-height: $line-height-relaxed;
@@ -131,45 +117,6 @@
   flex-direction: column;
   gap: $spacing-2;
   min-height: 0; // allow shrinking inside grid
-}
-
-.pdfViewer {
-  flex: 1;
-  min-height: 0;
-  width: 100%;
-  border: none;
-  border-radius: $radius-lg;
-  background-color: $color-neutral-100;
-  animation: pdfFadeIn 300ms ease;
-}
-
-@keyframes pdfFadeIn {
-  from {
-    opacity: 0.4;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-// Gentle dim while a new PDF is being generated
-.pdfRendering .pdfViewer,
-.pdfRendering .pdfPlaceholder {
-  opacity: 0.5;
-  transition: opacity 200ms ease;
-}
-
-.pdfPlaceholder {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid $color-neutral-200;
-  border-radius: $radius-lg;
-  background-color: $color-neutral-100;
-  color: $color-neutral-400;
-  font-size: $font-size-sm;
 }
 
 // ── Settings Overlay ──
@@ -227,6 +174,12 @@
   font-size: $font-size-md;
   font-weight: $font-weight-bold;
   color: $color-neutral-800;
+}
+
+.drawerHint {
+  font-size: $font-size-xs;
+  color: $color-neutral-400;
+  margin-top: 2px;
 }
 
 .drawerClose {

@@ -10,8 +10,8 @@ describe('Home', () => {
         <Home />
       </BrowserRouter>,
     );
-    expect(screen.getByText(/Markdown/)).toBeInTheDocument();
     expect(screen.getByText(/beautiful PDFs/)).toBeInTheDocument();
+    expect(screen.getByText(/Why Markdown/)).toBeInTheDocument();
   });
 
   it('renders the CTA button', () => {

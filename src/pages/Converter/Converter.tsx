@@ -1,8 +1,9 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
-import { FiDownload, FiMenu, FiX, FiLoader } from 'react-icons/fi';
+import { useState, useRef, useCallback } from 'react';
+import { FiDownload, FiMenu, FiX } from 'react-icons/fi';
 import { Button } from '@shared/components/Button/Button';
 import { FormattingToolbar } from '@domain/components/FormattingToolbar/FormattingToolbar';
 import { PdfSettingsPanel } from '@domain/components/PdfSettingsPanel/PdfSettingsPanel';
+import { PdfCanvasViewer } from '@domain/components/PdfCanvasViewer/PdfCanvasViewer';
 import { useConverterSettings } from '@domain/hooks/useConverterSettings';
 import { useMarkdownParser } from '@domain/hooks/useMarkdownParser';
 import { usePdfGenerator } from '@domain/hooks/usePdfGenerator';
@@ -17,40 +18,7 @@ export function Converter() {
   const { settings, updateSettings, updateMargins, updatePageNumber } = useConverterSettings();
   const hastTree = useMarkdownParser(markdown);
   const { generatePdf, isGenerating } = usePdfGenerator();
-  const { pdfUrl, isRendering } = useLivePdf(hastTree, settings);
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const scrollPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-
-  // Save scroll position from the current iframe before a new PDF loads
-  useEffect(() => {
-    if (isRendering && iframeRef.current) {
-      try {
-        const inner = iframeRef.current.contentWindow;
-        if (inner) {
-          scrollPosRef.current = { x: inner.scrollX ?? 0, y: inner.scrollY ?? 0 };
-        }
-      } catch {
-        // cross-origin guard — ignore
-      }
-    }
-  }, [isRendering]);
-
-  // Restore scroll position after iframe loads the new PDF
-  const handleIframeLoad = useCallback(() => {
-    const iframe = iframeRef.current;
-    if (!iframe) return;
-    try {
-      const inner = iframe.contentWindow;
-      if (inner && (scrollPosRef.current.x || scrollPosRef.current.y)) {
-        // Small delay lets the PDF viewer initialise its layout before scrolling
-        requestAnimationFrame(() => {
-          inner.scrollTo(scrollPosRef.current.x, scrollPosRef.current.y);
-        });
-      }
-    } catch {
-      // cross-origin guard — ignore
-    }
-  }, []);
+  const { pdfBlob, isRendering } = useLivePdf(hastTree, settings);
 
   const handleGenerate = () => {
     generatePdf(hastTree, settings);
@@ -98,25 +66,9 @@ export function Converter() {
           />
         </div>
 
-        <div className={`${styles.pdfPane} ${isRendering ? styles.pdfRendering : ''}`}>
-          <label className={styles.paneLabel}>
-            PDF Preview
-            {isRendering && <FiLoader className={styles.spinner} />}
-          </label>
-          {pdfUrl ? (
-            <iframe
-              ref={iframeRef}
-              key={pdfUrl}
-              className={styles.pdfViewer}
-              src={`${pdfUrl}#toolbar=0`}
-              title="Live PDF Preview"
-              onLoad={handleIframeLoad}
-            />
-          ) : (
-            <div className={styles.pdfPlaceholder}>
-              {isRendering ? 'Generating PDF…' : 'Start typing to see a live PDF preview'}
-            </div>
-          )}
+        <div className={styles.pdfPane}>
+          <label className={styles.paneLabel}>PDF Preview</label>
+          <PdfCanvasViewer blob={pdfBlob} isRendering={isRendering} />
         </div>
       </div>
 
@@ -126,7 +78,10 @@ export function Converter() {
           <div className={styles.overlay} onClick={closeOverlay} />
           <div className={styles.settingsDrawer}>
             <div className={styles.drawerHeader}>
-              <h2 className={styles.drawerTitle}>Settings</h2>
+              <div>
+                <h2 className={styles.drawerTitle}>Settings</h2>
+                <p className={styles.drawerHint}>Saved automatically in your browser</p>
+              </div>
               <button className={styles.drawerClose} onClick={closeOverlay}>
                 <FiX />
               </button>

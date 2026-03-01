@@ -1,5 +1,17 @@
 import { Link } from 'react-router-dom';
-import { FiFileText, FiEye, FiType, FiDownload, FiArrowRight } from 'react-icons/fi';
+import {
+  FiFileText,
+  FiEye,
+  FiType,
+  FiDownload,
+  FiArrowRight,
+  FiEdit3,
+  FiGlobe,
+  FiCpu,
+  FiBookOpen,
+  FiCode,
+  FiLayers,
+} from 'react-icons/fi';
 import { Button } from '@shared/components/Button/Button';
 import styles from './Home.module.scss';
 
@@ -91,6 +103,63 @@ export function Home() {
               <p className={styles.featureCardDescription}>{feature.description}</p>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className={styles.whyMarkdown}>
+        <h2 className={styles.whyTitle}>Why Markdown?</h2>
+        <p className={styles.whySubtitle}>
+          Markdown has become the go-to format for writing structured content — and for good reason.
+        </p>
+        <div className={styles.whyGrid}>
+          <div className={styles.whyCard}>
+            <FiEdit3 className={styles.whyIcon} />
+            <h3>Easy to Write</h3>
+            <p>
+              Simple, intuitive syntax that anyone can learn in minutes. No complex toolbars or
+              formatting menus — just type.
+            </p>
+          </div>
+          <div className={styles.whyCard}>
+            <FiCode className={styles.whyIcon} />
+            <h3>Pure Text</h3>
+            <p>
+              Markdown files are plain text. They&apos;re lightweight, diffable,
+              version-controllable, and will never become unreadable due to proprietary formats.
+            </p>
+          </div>
+          <div className={styles.whyCard}>
+            <FiGlobe className={styles.whyIcon} />
+            <h3>Widely Adopted</h3>
+            <p>
+              GitHub, GitLab, Stack Overflow, Reddit, Notion, and countless other platforms use
+              Markdown as their primary content format.
+            </p>
+          </div>
+          <div className={styles.whyCard}>
+            <FiLayers className={styles.whyIcon} />
+            <h3>Consistent Formatting</h3>
+            <p>
+              Standardized marks produce predictable output everywhere — headings, lists, emphasis,
+              code blocks, and tables always look right.
+            </p>
+          </div>
+          <div className={styles.whyCard}>
+            <FiCpu className={styles.whyIcon} />
+            <h3>AI-Friendly</h3>
+            <p>
+              ChatGPT, Claude, Gemini, and other AI assistants output Markdown by default. Convert
+              their responses directly into polished PDFs.
+            </p>
+          </div>
+          <div className={styles.whyCard}>
+            <FiBookOpen className={styles.whyIcon} />
+            <h3>Built for Docs</h3>
+            <p>
+              READMEs, wikis, API references, technical specs — the documentation world runs on
+              Markdown. It&apos;s portable and transferable to any system.
+            </p>
+          </div>
         </div>
       </section>
 

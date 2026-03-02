@@ -68,14 +68,17 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  padding: 8px;
+  border-radius: $radius-sm;
+  border: 1px solid $color-neutral-200;
 }
 
 .patternSwatch {
   width: 32px;
   height: 32px;
   border-radius: $radius-sm;
-  border: 2px solid $color-neutral-200;
-  background: $color-neutral-0;
+  border: 2px solid rgba(128, 128, 128, 0.25);
+  background: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -97,7 +100,7 @@
 
 .patternSwatchActive {
   border-color: $color-primary-600;
-  box-shadow: 0 0 0 2px rgba($color-primary-600, 0.25);
+  box-shadow: 0 0 0 2px rgba($color-primary-600, 0.35);
 }
 
 .patternNone {

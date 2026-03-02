@@ -1,5 +1,6 @@
 import React from 'react';
 import { Text, View, Link, Image } from '@react-pdf/renderer';
+import type { Style } from '@react-pdf/types';
 import type { Element, Root, RootContent, ElementContent } from 'hast';
 import { refractor } from 'refractor';
 import { parseInlineStyle } from './parseInlineStyle';
@@ -217,24 +218,53 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
       // children like <Image> (from ![alt](url)) don't nest inside
       // a <Text> — which causes @react-pdf to produce NaN in layout.
       const pInline = allChildrenInline(node);
+      const pAlign = inlineStyle.textAlign as Style['textAlign'];
+
       if (pInline) {
+        const pTextStyle: Style = {
+          fontSize: 12,
+          marginBottom: 8,
+          lineHeight: 1.6,
+          color: inlineStyle.color || textColor,
+        };
+        if (pAlign) pTextStyle.textAlign = pAlign;
+
+        // For centered/right-aligned captions, wrap in a View so
+        // alignment works across the full width.
+        if (pAlign && pAlign !== 'left') {
+          const alignKey = inlineStyle.textAlign ?? 'left';
+          return React.createElement(
+            View,
+            {
+              key,
+              style: {
+                marginTop: -14,
+                marginBottom: 8,
+                alignItems: TEXT_ALIGN_MAP[alignKey] || 'flex-start',
+                width: '100%',
+              },
+            },
+            React.createElement(
+              Text,
+              { style: pTextStyle } as React.ComponentProps<typeof Text>,
+              ...children,
+            ),
+          );
+        }
         return React.createElement(
           Text,
-          {
-            key,
-            style: {
-              fontSize: 12,
-              marginBottom: 8,
-              lineHeight: 1.6,
-              color: inlineStyle.color || textColor,
-            },
-          },
+          { key, style: pTextStyle } as React.ComponentProps<typeof Text> & { key: string },
           ...children,
         );
       }
+
+      const pViewStyle: Style = { marginBottom: 8 };
+      if (inlineStyle.textAlign && TEXT_ALIGN_MAP[inlineStyle.textAlign]) {
+        pViewStyle.alignItems = TEXT_ALIGN_MAP[inlineStyle.textAlign];
+      }
       return React.createElement(
         View,
-        { key, style: { marginBottom: 8 } },
+        { key, style: pViewStyle },
         ...blockChildren(children, textColor),
       );
     }

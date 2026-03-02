@@ -87,6 +87,7 @@ const TOOLBAR_ROW1: ToolbarGroup[] = [
     items: [
       { icon: FiLink, label: 'Link', actionType: 'link' },
       { icon: FiImage, label: 'Image', actionType: 'image' },
+      { icon: FiType, label: 'Image Caption', shortLabel: 'Caption', actionType: 'caption' },
     ],
   },
   {
@@ -273,6 +274,9 @@ export function FormattingToolbar({
         case 'image':
           wrapSelection('![', '](https://example.com/image.png)');
           break;
+        case 'caption':
+          wrapSelection('<p style="text-align: center"><em>', '</em></p>');
+          break;
         case 'blockquote':
           insertAtLineStart('> ');
           break;
@@ -339,7 +343,7 @@ export function FormattingToolbar({
             <button
               className={styles.button}
               onClick={() => setShowColorPicker(!showColorPicker)}
-              title="Text Color"
+              title="Apply color to selected text"
               type="button"
             >
               <FiDroplet />

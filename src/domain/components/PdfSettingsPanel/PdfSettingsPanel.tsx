@@ -55,7 +55,7 @@ export function PdfSettingsPanel({
 
       <div className={styles.section}>
         <h4 className={styles.sectionTitle}>Background Pattern</h4>
-        <div className={styles.patternGrid}>
+        <div className={styles.patternGrid} style={{ backgroundColor: settings.backgroundColor }}>
           <button
             type="button"
             className={`${styles.patternSwatch} ${activePatternId === 'none' ? styles.patternSwatchActive : ''}`}
@@ -85,7 +85,7 @@ export function PdfSettingsPanel({
               <img
                 src={buildPatternPreviewSvg(
                   p.id,
-                  settings.textColor,
+                  settings.backgroundPattern.patternColor,
                   Math.max(patternOpacity, 0.4),
                 )}
                 alt={p.label}
@@ -98,6 +98,11 @@ export function PdfSettingsPanel({
         </div>
         {activePatternId !== 'none' && (
           <>
+            <ColorPicker
+              label="Pattern color"
+              color={settings.backgroundPattern.patternColor}
+              onChange={(color) => onUpdateBackgroundPattern({ patternColor: color })}
+            />
             <Slider
               label="Pattern opacity"
               value={Math.round(patternOpacity * 100)}

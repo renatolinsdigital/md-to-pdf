@@ -35,7 +35,7 @@ export function useLivePdf(hastTree: Root | null, settings: ConverterSettings) {
         resolveImages(structuredClone(tree)),
         rasterizePattern(
           settings.backgroundPattern.patternId,
-          settings.textColor,
+          settings.backgroundPattern.patternColor,
           settings.backgroundPattern.opacity,
           settings.pageSize,
           settings.backgroundPattern.elementSize,

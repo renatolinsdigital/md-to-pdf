@@ -7,7 +7,6 @@
   gap: $spacing-3;
   animation: fadeIn $transition-normal;
   height: calc(100vh - 64px);
-  overflow: hidden;
 
   @include desktop {
     padding: $spacing-4 $spacing-6 $spacing-4;
@@ -54,6 +53,7 @@
   gap: $spacing-4;
   flex: 1;
   min-height: 0; // critical for nested flex/grid overflow
+  overflow: hidden;
 
   @include mobile {
     grid-template-columns: 1fr;

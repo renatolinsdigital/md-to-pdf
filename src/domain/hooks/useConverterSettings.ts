@@ -7,6 +7,7 @@ export interface ConverterSettings {
     opacity: number;
     elementSize: number;
     gap: number;
+    patternColor: string;
   };
   margins: {
     top: number;
@@ -28,7 +29,13 @@ const STORAGE_KEY = 'md-to-pdf-settings';
 
 const defaultSettings: ConverterSettings = {
   backgroundColor: '#FFFFFF',
-  backgroundPattern: { patternId: 'none', opacity: 0.04, elementSize: 22, gap: 20 },
+  backgroundPattern: {
+    patternId: 'none',
+    opacity: 0.04,
+    elementSize: 22,
+    gap: 20,
+    patternColor: '#000000',
+  },
   margins: { top: 20, right: 20, bottom: 20, left: 20 },
   pageSize: 'A4',
   pageNumber: {

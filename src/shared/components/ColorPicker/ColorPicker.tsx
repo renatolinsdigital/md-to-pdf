@@ -11,24 +11,36 @@ interface ColorPickerProps {
 export function ColorPicker({ color, onChange, label }: ColorPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState(color);
-  const pickerRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const swatchRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setInputValue(color);
   }, [color]);
 
-  const handleClickOutside = useCallback((e: MouseEvent) => {
-    if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+  const handleClickOutside = useCallback((e: PointerEvent) => {
+    const target = e.target as Node;
+    const insidePopover = popoverRef.current?.contains(target);
+    const insideSwatch = swatchRef.current?.contains(target);
+    if (!insidePopover && !insideSwatch) {
       setIsOpen(false);
     }
   }, []);
 
+  const handleEscape = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') setIsOpen(false);
+  }, []);
+
   useEffect(() => {
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('pointerdown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
     }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isOpen, handleClickOutside]);
+    return () => {
+      document.removeEventListener('pointerdown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen, handleClickOutside, handleEscape]);
 
   const handleInputChange = (value: string) => {
     setInputValue(value);
@@ -38,9 +50,10 @@ export function ColorPicker({ color, onChange, label }: ColorPickerProps) {
   };
 
   return (
-    <div className={styles.wrapper} ref={pickerRef}>
+    <div className={styles.wrapper}>
       {label && <span className={styles.label}>{label}</span>}
       <button
+        ref={swatchRef}
         className={styles.swatch}
         style={{ backgroundColor: color }}
         onClick={() => setIsOpen(!isOpen)}
@@ -48,7 +61,7 @@ export function ColorPicker({ color, onChange, label }: ColorPickerProps) {
         type="button"
       />
       {isOpen && (
-        <div className={styles.popover}>
+        <div className={styles.popover} ref={popoverRef}>
           <HexColorPicker color={color} onChange={onChange} />
           <input
             className={styles.hexInput}

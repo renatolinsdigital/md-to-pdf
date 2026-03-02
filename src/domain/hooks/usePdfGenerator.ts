@@ -26,7 +26,7 @@ export function usePdfGenerator() {
           resolveImages(structuredClone(tree)),
           rasterizePattern(
             settings.backgroundPattern.patternId,
-            settings.textColor,
+            settings.backgroundPattern.patternColor,
             settings.backgroundPattern.opacity,
             settings.pageSize,
             settings.backgroundPattern.elementSize,

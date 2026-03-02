@@ -78,8 +78,7 @@ Use blockquotes to highlight important passages, testimonials, or callouts.
 ## Images
 
 ![Ocean view](https://images.unsplash.com/photo-1772306105684-4ec41e099a47?w=600&fm=jpg)
-
-Images are fetched, converted to JPEG, and embedded directly into the PDF.
+<p style="text-align: center"><em>Images are fetched, converted to JPEG, and embedded into the PDF.</em></p>
 
 ## Alignment Control
 

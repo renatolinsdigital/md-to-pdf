@@ -4,6 +4,7 @@ import { Slider } from '@shared/components/Slider/Slider';
 import { Select } from '@shared/components/Select/Select';
 import { Input } from '@shared/components/Input/Input';
 import type { ConverterSettings } from '@domain/hooks/useConverterSettings';
+import { PATTERNS, buildPatternPreviewSvg } from '@domain/helpers/backgroundPatterns';
 import styles from './PdfSettingsPanel.module.scss';
 
 interface PdfSettingsPanelProps {
@@ -11,6 +12,7 @@ interface PdfSettingsPanelProps {
   onUpdateSettings: (updates: Partial<ConverterSettings>) => void;
   onUpdateMargins: (updates: Partial<ConverterSettings['margins']>) => void;
   onUpdatePageNumber: (updates: Partial<ConverterSettings['pageNumber']>) => void;
+  onUpdateBackgroundPattern: (updates: Partial<ConverterSettings['backgroundPattern']>) => void;
   onReset: () => void;
 }
 
@@ -25,8 +27,12 @@ export function PdfSettingsPanel({
   onUpdateSettings,
   onUpdateMargins,
   onUpdatePageNumber,
+  onUpdateBackgroundPattern,
   onReset,
 }: PdfSettingsPanelProps) {
+  const activePatternId = settings.backgroundPattern.patternId;
+  const patternOpacity = settings.backgroundPattern.opacity;
+
   return (
     <div className={styles.panel}>
       <h3 className={styles.title}>PDF Settings</h3>
@@ -45,6 +51,79 @@ export function PdfSettingsPanel({
             onChange={(color) => onUpdateSettings({ textColor: color })}
           />
         </div>
+      </div>
+
+      <div className={styles.section}>
+        <h4 className={styles.sectionTitle}>Background Pattern</h4>
+        <div className={styles.patternGrid}>
+          <button
+            type="button"
+            className={`${styles.patternSwatch} ${activePatternId === 'none' ? styles.patternSwatchActive : ''}`}
+            onClick={() => onUpdateBackgroundPattern({ patternId: 'none' })}
+            title="No pattern"
+          >
+            <svg
+              className={styles.patternNone}
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle cx="12" cy="12" r="10" stroke="#dc2626" strokeWidth="2.5" fill="none" />
+              <line x1="5" y1="5" x2="19" y2="19" stroke="#dc2626" strokeWidth="2.5" />
+            </svg>
+          </button>
+          {PATTERNS.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              className={`${styles.patternSwatch} ${activePatternId === p.id ? styles.patternSwatchActive : ''}`}
+              onClick={() => onUpdateBackgroundPattern({ patternId: p.id })}
+              title={p.label}
+            >
+              <img
+                src={buildPatternPreviewSvg(
+                  p.id,
+                  settings.textColor,
+                  Math.max(patternOpacity, 0.4),
+                )}
+                alt={p.label}
+                width={20}
+                height={20}
+                draggable={false}
+              />
+            </button>
+          ))}
+        </div>
+        {activePatternId !== 'none' && (
+          <>
+            <Slider
+              label="Pattern opacity"
+              value={Math.round(patternOpacity * 100)}
+              onChange={(v) => onUpdateBackgroundPattern({ opacity: v / 100 })}
+              min={1}
+              max={30}
+              unit="%"
+            />
+            <Slider
+              label="Element size"
+              value={settings.backgroundPattern.elementSize}
+              onChange={(v) => onUpdateBackgroundPattern({ elementSize: v })}
+              min={12}
+              max={60}
+              unit="pt"
+            />
+            <Slider
+              label="Gap"
+              value={settings.backgroundPattern.gap}
+              onChange={(v) => onUpdateBackgroundPattern({ gap: v })}
+              min={8}
+              max={80}
+              unit="pt"
+            />
+          </>
+        )}
       </div>
 
       <div className={styles.section}>

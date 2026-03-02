@@ -2,6 +2,12 @@ import { useState, useCallback } from 'react';
 
 export interface ConverterSettings {
   backgroundColor: string;
+  backgroundPattern: {
+    patternId: string;
+    opacity: number;
+    elementSize: number;
+    gap: number;
+  };
   margins: {
     top: number;
     right: number;
@@ -22,6 +28,7 @@ const STORAGE_KEY = 'md-to-pdf-settings';
 
 const defaultSettings: ConverterSettings = {
   backgroundColor: '#FFFFFF',
+  backgroundPattern: { patternId: 'none', opacity: 0.04, elementSize: 22, gap: 20 },
   margins: { top: 20, right: 20, bottom: 20, left: 20 },
   pageSize: 'A4',
   pageNumber: {
@@ -41,6 +48,10 @@ function loadSettings(): ConverterSettings {
       return {
         ...defaultSettings,
         ...parsed,
+        backgroundPattern: {
+          ...defaultSettings.backgroundPattern,
+          ...(parsed.backgroundPattern ?? {}),
+        },
         margins: { ...defaultSettings.margins, ...(parsed.margins ?? {}) },
         pageNumber: { ...defaultSettings.pageNumber, ...(parsed.pageNumber ?? {}) },
       };
@@ -89,6 +100,20 @@ export function useConverterSettings() {
     [],
   );
 
+  const updateBackgroundPattern = useCallback(
+    (patternUpdates: Partial<ConverterSettings['backgroundPattern']>) => {
+      setSettings((prev) => {
+        const next = {
+          ...prev,
+          backgroundPattern: { ...prev.backgroundPattern, ...patternUpdates },
+        };
+        persistSettings(next);
+        return next;
+      });
+    },
+    [],
+  );
+
   const resetSettings = useCallback(() => {
     try {
       localStorage.removeItem(STORAGE_KEY);
@@ -98,5 +123,12 @@ export function useConverterSettings() {
     setSettings(defaultSettings);
   }, []);
 
-  return { settings, updateSettings, updateMargins, updatePageNumber, resetSettings };
+  return {
+    settings,
+    updateSettings,
+    updateMargins,
+    updatePageNumber,
+    updateBackgroundPattern,
+    resetSettings,
+  };
 }

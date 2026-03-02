@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, Text, View } from '@react-pdf/renderer';
+import { Document, Page, Text, View, Image } from '@react-pdf/renderer';
 import type { Root } from 'hast';
 import type { ConverterSettings } from '@domain/hooks/useConverterSettings';
 import { hastToReactPdf, resetKeyCounter } from '@domain/helpers/hastToPdf';
@@ -9,11 +9,13 @@ import { registerFonts } from '@domain/helpers/fontRegistration';
 interface PdfDocumentProps {
   hastTree: Root;
   settings: ConverterSettings;
+  /** Pre-rasterised PNG data-URL for the background pattern (or null). */
+  patternDataUrl?: string | null;
 }
 
 registerFonts();
 
-export function PdfDocument({ hastTree, settings }: PdfDocumentProps) {
+export function PdfDocument({ hastTree, settings, patternDataUrl }: PdfDocumentProps) {
   resetKeyCounter();
 
   const marginTop = mmToPt(settings.margins.top);
@@ -41,6 +43,29 @@ export function PdfDocument({ hastTree, settings }: PdfDocumentProps) {
           fontSize: 12,
         },
       },
+      // Background pattern – fills the content area behind text on every page
+      patternDataUrl
+        ? React.createElement(
+            View,
+            {
+              fixed: true,
+              style: {
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+              },
+            },
+            React.createElement(Image, {
+              src: patternDataUrl,
+              style: {
+                width: '100%',
+                height: '100%',
+              },
+            }),
+          )
+        : null,
       React.createElement(View, null, pdfContent),
       settings.pageNumber.enabled
         ? React.createElement(Text, {

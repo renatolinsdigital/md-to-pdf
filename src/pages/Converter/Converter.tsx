@@ -26,8 +26,14 @@ export function Converter() {
   const [markdown, setMarkdown] = useState(loadMarkdown);
   const [showSettings, setShowSettings] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { settings, updateSettings, updateMargins, updatePageNumber, resetSettings } =
-    useConverterSettings();
+  const {
+    settings,
+    updateSettings,
+    updateMargins,
+    updatePageNumber,
+    updateBackgroundPattern,
+    resetSettings,
+  } = useConverterSettings();
   const hastTree = useMarkdownParser(markdown);
   const { generatePdf, isGenerating } = usePdfGenerator();
   const { pdfBlob, isRendering } = useLivePdf(hastTree, settings);
@@ -122,6 +128,7 @@ export function Converter() {
               onUpdateSettings={updateSettings}
               onUpdateMargins={updateMargins}
               onUpdatePageNumber={updatePageNumber}
+              onUpdateBackgroundPattern={updateBackgroundPattern}
               onReset={resetSettings}
             />
           </div>

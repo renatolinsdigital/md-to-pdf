@@ -28,12 +28,13 @@ A well-structured document is easier to scan, easier to print, and easier to sha
 - Export to a polished PDF
 - Share with anyone, anywhere
 
+<br><br><br>
+
 **Ordered lists** for step-by-step processes:
 
-1. Open the converter
-2. Type or paste your Markdown
-3. Customize settings to your liking
-4. Download a ready-to-share PDF
+1. Type or paste your Markdown
+2. Customize settings to your liking
+3. Download a ready-to-share PDF
 
 ## Links and References
 

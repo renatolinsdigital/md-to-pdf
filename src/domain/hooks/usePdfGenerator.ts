@@ -6,6 +6,7 @@ import { useToast } from './useToast';
 import { PdfDocument } from '@domain/components/PdfDocument/PdfDocument';
 import { resolveImages } from '@domain/helpers/resolveImages';
 import { stripImages } from '@domain/helpers/stripImages';
+import { rasterizePattern } from '@domain/helpers/backgroundPatterns';
 
 export function usePdfGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -21,8 +22,18 @@ export function usePdfGenerator() {
       setIsGenerating(true);
 
       const generate = async (tree: Root): Promise<Blob> => {
-        const resolvedTree = await resolveImages(structuredClone(tree));
-        const doc = PdfDocument({ hastTree: resolvedTree, settings });
+        const [resolvedTree, patternDataUrl] = await Promise.all([
+          resolveImages(structuredClone(tree)),
+          rasterizePattern(
+            settings.backgroundPattern.patternId,
+            settings.textColor,
+            settings.backgroundPattern.opacity,
+            settings.pageSize,
+            settings.backgroundPattern.elementSize,
+            settings.backgroundPattern.gap,
+          ),
+        ]);
+        const doc = PdfDocument({ hastTree: resolvedTree, settings, patternDataUrl });
         return pdf(doc).toBlob();
       };
 

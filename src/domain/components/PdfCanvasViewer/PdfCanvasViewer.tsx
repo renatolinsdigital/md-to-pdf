@@ -85,7 +85,7 @@ export function PdfCanvasViewer({ blob, isRendering }: PdfCanvasViewerProps) {
       setPages(images);
       doc.destroy();
 
-      // Restore scroll — clamped to new max if PDF got shorter
+      // Restore scroll - clamped to new max if PDF got shorter
       requestAnimationFrame(() => {
         const c = containerRef.current;
         if (c) {

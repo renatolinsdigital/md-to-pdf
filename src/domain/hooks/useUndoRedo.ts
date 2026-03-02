@@ -48,7 +48,7 @@ function applyDiff(text: string, diff: Diff, reverse: boolean): string {
 }
 
 /**
- * Debounce interval (ms) — sequential small edits within this
+ * Debounce interval (ms) - sequential small edits within this
  * window are merged into a single undo entry.
  */
 const MERGE_WINDOW = 400;

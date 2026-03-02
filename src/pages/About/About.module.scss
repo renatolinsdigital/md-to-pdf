@@ -175,7 +175,7 @@
   justify-content: center;
   gap: $spacing-10;
   max-width: 800px;
-  margin: 0 auto $spacing-16;
+  margin: $spacing-16 auto;
   padding: $spacing-8 $spacing-6;
   background: linear-gradient(135deg, $color-primary-50, $color-neutral-0);
   border-top: 1px solid $color-neutral-200;

@@ -106,20 +106,19 @@ const TOOLBAR_ROW2: ToolbarGroup[] = [
     items: [
       {
         icon: FiAlignLeft,
-        label: 'Align Left — wraps content in a container that aligns images and text to the left',
+        label: 'Align Left: wraps content in a container that aligns images and text to the left',
         shortLabel: '⬅ Left',
         actionType: 'alignLeft',
       },
       {
         icon: FiAlignCenter,
-        label: 'Align Center — wraps content in a container that centers images and text',
+        label: 'Align Center: wraps content in a container that centers images and text',
         shortLabel: '↔ Center',
         actionType: 'alignCenter',
       },
       {
         icon: FiAlignRight,
-        label:
-          'Align Right — wraps content in a container that aligns images and text to the right',
+        label: 'Align Right: wraps content in a container that aligns images and text to the right',
         shortLabel: '➡ Right',
         actionType: 'alignRight',
       },

@@ -75,7 +75,7 @@ function persistSettings(settings: ConverterSettings): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
   } catch {
-    // Storage full or unavailable — ignore
+    // Storage full or unavailable - ignore
   }
 }
 

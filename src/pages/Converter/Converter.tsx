@@ -48,7 +48,7 @@ export function Converter() {
     try {
       localStorage.setItem(STORAGE_KEY, markdown);
     } catch {
-      // Storage full or unavailable — ignore
+      // Storage full or unavailable - ignore
     }
   }, [markdown]);
 

@@ -58,7 +58,7 @@ export function useLivePdf(hastTree: Root | null, settings: ConverterSettings) {
         console.warn('[useLivePdf] PDF generation failed, retrying without images:', err);
         if (gen !== genRef.current) return;
 
-        // Retry without images — a broken image should never prevent the PDF from rendering
+        // Retry without images - a broken image should never prevent the PDF from rendering
         try {
           const blob = await generate(stripImages(hastTree));
           if (gen !== genRef.current) return;

@@ -187,7 +187,7 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
   const inlineStyle = getInlineStyle(node);
   const children = getChildrenPdf(node, textColor);
 
-  // Heading — keep together with at least some following content
+  // Heading - keep together with at least some following content
   if (HEADING_SIZES[tag]) {
     return React.createElement(
       View,
@@ -216,7 +216,7 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
       // When every child is inline-safe, render as <Text> for proper
       // text wrapping; otherwise fall back to <View> so block-level
       // children like <Image> (from ![alt](url)) don't nest inside
-      // a <Text> — which causes @react-pdf to produce NaN in layout.
+      // a <Text> - which causes @react-pdf to produce NaN in layout.
       const pInline = allChildrenInline(node);
       const pAlign = inlineStyle.textAlign as Style['textAlign'];
 
@@ -341,7 +341,7 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
       );
 
     case 'pre': {
-      // Code block: pre > code — extract language and syntax-highlight
+      // Code block: pre > code - extract language and syntax-highlight
       const codeNode = node.children.find((c) => c.type === 'element' && c.tagName === 'code') as
         | Element
         | undefined;
@@ -357,7 +357,7 @@ function renderElement(node: Element, textColor: string): React.ReactNode {
           const highlighted = refractor.highlight(codeContent, lang);
           codeChildren = renderCodeHastNodes(highlighted.children);
         } catch {
-          // Unsupported language — plain monochrome
+          // Unsupported language - plain monochrome
           codeChildren = [codeContent];
         }
       } else {

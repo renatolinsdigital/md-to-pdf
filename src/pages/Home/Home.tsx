@@ -43,7 +43,7 @@ const features = [
     icon: FiRotateCcw,
     title: 'Undo & Redo',
     description:
-      'Full undo/redo support in the editor. Press Ctrl+Z to undo and Ctrl+Shift+Z to redo — up to 50 steps.',
+      'Full undo/redo support in the editor. Press Ctrl+Z to undo and Ctrl+Shift+Z to redo, up to 50 steps.',
   },
 ];
 
@@ -116,7 +116,7 @@ export function Home() {
       <section className={styles.whyMarkdown}>
         <h2 className={styles.whyTitle}>Why Markdown?</h2>
         <p className={styles.whySubtitle}>
-          Markdown has become the go-to format for writing structured content — and for good reason.
+          Markdown has become the go-to format for writing structured content, and for good reason.
         </p>
         <div className={styles.whyGrid}>
           <div className={styles.whyCard}>
@@ -124,7 +124,7 @@ export function Home() {
             <h3>Easy to Write</h3>
             <p>
               Simple, intuitive syntax that anyone can learn in minutes. No complex toolbars or
-              formatting menus — just type.
+              formatting menus. Just type.
             </p>
           </div>
           <div className={styles.whyCard}>
@@ -147,7 +147,7 @@ export function Home() {
             <FiLayers className={styles.whyIcon} />
             <h3>Consistent Formatting</h3>
             <p>
-              Standardized marks produce predictable output everywhere — headings, lists, emphasis,
+              Standardized marks produce predictable output everywhere: headings, lists, emphasis,
               code blocks, and tables always look right.
             </p>
           </div>
@@ -163,7 +163,7 @@ export function Home() {
             <FiBookOpen className={styles.whyIcon} />
             <h3>Built for Docs</h3>
             <p>
-              READMEs, wikis, API references, technical specs — the documentation world runs on
+              READMEs, wikis, API references, technical specs: the documentation world runs on
               Markdown. It&apos;s portable and transferable to any system.
             </p>
           </div>

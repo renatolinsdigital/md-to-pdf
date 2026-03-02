@@ -25,12 +25,12 @@ async function fetchImageAsDataUrl(src: string): Promise<string> {
   }
   const blob = await response.blob();
 
-  // JPEG / PNG — convert raw bytes to a data-URL
+  // JPEG / PNG - convert raw bytes to a data-URL
   if (blob.type === 'image/jpeg' || blob.type === 'image/png') {
     return blobToDataUrl(blob);
   }
 
-  // Anything else (WebP, AVIF, …) — re-encode as JPEG via canvas
+  // Anything else (WebP, AVIF, etc.) - re-encode as JPEG via canvas
   const bitmap = await createImageBitmap(blob);
   const canvas = document.createElement('canvas');
   canvas.width = bitmap.width;

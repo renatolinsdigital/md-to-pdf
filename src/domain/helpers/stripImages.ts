@@ -2,7 +2,7 @@ import type { Root } from 'hast';
 
 /**
  * Remove all `<img>` elements from a HAST tree.
- * Returns a shallow clone — the original tree is not mutated.
+ * Returns a shallow clone - the original tree is not mutated.
  */
 export function stripImages(tree: Root): Root {
   function filterChildren(children: Root['children']): Root['children'] {

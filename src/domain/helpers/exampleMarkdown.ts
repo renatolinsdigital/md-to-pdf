@@ -1,4 +1,4 @@
-export const EXAMPLE_MARKDOWN = `# Markdown to PDF — A Complete Guide
+export const EXAMPLE_MARKDOWN = `# Markdown to PDF: A Complete Guide
 
 Markdown is a **lightweight markup language** that maps beautifully to PDF. Every element you write translates directly into *polished, print-ready* output.
 
@@ -40,7 +40,7 @@ A well-structured document is easier to scan, easier to print, and easier to sha
 
 Markdown links render cleanly in PDF: visit [Markdown Guide](https://www.markdownguide.org) for the full syntax reference, or link to your [project repository](https://github.com) for collaboration.
 
-## Code — Inline and Blocks
+## Code: Inline and Blocks
 
 Reference variables like \`fontSize\` or commands like \`npm install\` inline.
 
@@ -54,7 +54,7 @@ function markdownToPdf(source) {
 }
 \`\`\`
 
-Code blocks preserve formatting and use a monospaced font — perfect for technical documentation.
+Code blocks preserve formatting and use a monospaced font, perfect for technical documentation.
 
 ## Tables Present Data Clearly
 
@@ -66,7 +66,7 @@ Code blocks preserve formatting and use a monospaced font — perfect for techni
 | Inline Code    | \`\\\`code\\\`\`      | \`Rendered code\`     |
 | Link           | \`[text](url)\`    | Clickable link      |
 
-Tables are one of the most useful features — data that would be hard to read as plain text becomes instantly clear.
+Tables are one of the most useful features. Data that would be hard to read as plain text becomes instantly clear.
 
 ## Blockquotes Add Emphasis
 
@@ -84,13 +84,13 @@ Use blockquotes to highlight important passages, testimonials, or callouts.
 
 <div style="text-align: center">
 
-**Centered content** — ideal for titles, images, or callouts that need visual prominence.
+**Centered content**, ideal for titles, images, or callouts that need visual prominence.
 
 </div>
 
 <div style="text-align: right">
 
-*Right-aligned text* — useful for dates, signatures, or attributions.
+*Right-aligned text*, useful for dates, signatures, or attributions.
 
 </div>
 
@@ -102,10 +102,10 @@ Use a simple \`---\` to create a visual break between topics:
 
 ## Why Markdown for PDF?
 
-1. **Portable** — plain text files work everywhere
-2. **Version-friendly** — diffs are readable in Git
-3. **Flexible** — one source, many output formats
-4. **Fast** — no complex editors, just type and convert
+1. **Portable**: plain text files work everywhere
+2. **Version-friendly**: diffs are readable in Git
+3. **Flexible**: one source, many output formats
+4. **Fast**: no complex editors, just type and convert
 
 Markdown bridges the gap between *writing* and *designing*. You focus on the content; the converter handles the layout.
 

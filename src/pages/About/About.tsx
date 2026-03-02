@@ -62,8 +62,8 @@ export function About() {
       <section className={styles.hero}>
         <h1 className={styles.title}>About MD to PDF</h1>
         <p className={styles.subtitle}>
-          A modern, client-side Markdown to PDF converter. No server, no uploads — everything
-          happens right in your browser.
+          A modern, client-side Markdown to PDF converter. No server, no uploads. Everything happens
+          right in your browser.
         </p>
       </section>
 
@@ -93,7 +93,7 @@ export function About() {
               Type or paste Markdown on the left and see a live PDF preview on the right. The
               formatting toolbar above the editor lets you insert bold, italic, headings, lists,
               links, images, code blocks, blockquotes, colored text, alignment wrappers, and image
-              captions — all without memorizing syntax.
+              captions, all without memorizing syntax.
             </p>
           </div>
 
@@ -128,7 +128,7 @@ export function About() {
                 Use <code>Load Example</code> to see every supported feature in action.
               </li>
               <li>
-                Images are fetched and embedded — use direct URLs ending in <code>.jpg</code> or{' '}
+                Images are fetched and embedded. Use direct URLs ending in <code>.jpg</code> or{' '}
                 <code>.png</code> for best results.
               </li>
               <li>
@@ -143,7 +143,7 @@ export function About() {
                 Use <code>&lt;span style=&quot;color: #3b82f6&quot;&gt;</code> or the color picker
                 to colorize specific text.
               </li>
-              <li>Everything runs client-side — your content never leaves your browser.</li>
+              <li>Everything runs client-side. Your content never leaves your browser.</li>
             </ul>
           </div>
         </div>

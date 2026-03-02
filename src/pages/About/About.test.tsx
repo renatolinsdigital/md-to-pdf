@@ -32,8 +32,9 @@ describe('About', () => {
     expect(screen.getByText('Send Message')).toBeInTheDocument();
   });
 
-  it('renders tech stack info', () => {
+  it('renders the free and private banner', () => {
     renderAbout();
-    expect(screen.getByText('Tech Stack')).toBeInTheDocument();
+    expect(screen.getByText('100% Free')).toBeInTheDocument();
+    expect(screen.getByText('Fully Private')).toBeInTheDocument();
   });
 });

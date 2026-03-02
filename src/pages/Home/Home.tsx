@@ -11,6 +11,7 @@ import {
   FiBookOpen,
   FiCode,
   FiLayers,
+  FiRotateCcw,
 } from 'react-icons/fi';
 import { Button } from '@shared/components/Button/Button';
 import styles from './Home.module.scss';
@@ -37,6 +38,12 @@ const features = [
     title: 'Vector PDF',
     description:
       'Generate high-quality vector PDFs with selectable text and professional page numbering.',
+  },
+  {
+    icon: FiRotateCcw,
+    title: 'Undo & Redo',
+    description:
+      'Full undo/redo support in the editor. Press Ctrl+Z to undo and Ctrl+Shift+Z to redo — up to 50 steps.',
   },
 ];
 

@@ -23,6 +23,7 @@ export interface ConverterSettings {
     fontSize: number;
   };
   textColor: string;
+  historySize: number;
 }
 
 const STORAGE_KEY = 'md-to-pdf-settings';
@@ -45,6 +46,7 @@ const defaultSettings: ConverterSettings = {
     fontSize: 10,
   },
   textColor: '#000000',
+  historySize: 50,
 };
 
 function loadSettings(): ConverterSettings {

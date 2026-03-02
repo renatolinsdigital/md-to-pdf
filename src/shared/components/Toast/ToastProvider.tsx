@@ -1,19 +1,6 @@
-import { createContext, useCallback, useState, type ReactNode } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import { ToastContainer } from './ToastContainer';
-
-export type ToastVariant = 'success' | 'error' | 'warning' | 'info';
-
-export interface ToastItem {
-  id: string;
-  message: string;
-  variant: ToastVariant;
-}
-
-interface ToastContextType {
-  showToast: (message: string, variant?: ToastVariant) => void;
-}
-
-export const ToastContext = createContext<ToastContextType | null>(null);
+import { ToastContext, type ToastVariant, type ToastItem } from './ToastContext';
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);

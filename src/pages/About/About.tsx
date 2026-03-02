@@ -1,5 +1,14 @@
 import { useState, type FormEvent } from 'react';
-import { FiMail, FiGithub, FiHeart } from 'react-icons/fi';
+import {
+  FiMail,
+  FiHeart,
+  FiBookOpen,
+  FiEdit3,
+  FiRotateCcw,
+  FiSettings,
+  FiZap,
+  FiShield,
+} from 'react-icons/fi';
 import { Input } from '@shared/components/Input/Input';
 import { Textarea } from '@shared/components/Textarea/Textarea';
 import { Button } from '@shared/components/Button/Button';
@@ -53,37 +62,95 @@ export function About() {
       <section className={styles.hero}>
         <h1 className={styles.title}>About MD to PDF</h1>
         <p className={styles.subtitle}>
-          A modern, client-side markdown to PDF converter built with React. No server, no uploads —
-          everything happens in your browser.
+          A modern, client-side Markdown to PDF converter. No server, no uploads — everything
+          happens right in your browser.
         </p>
       </section>
 
-      <section className={styles.content}>
-        <div className={styles.info}>
-          <div className={styles.card}>
-            <FiHeart className={styles.cardIcon} />
-            <h2 className={styles.cardTitle}>Free Software</h2>
-            <p className={styles.cardDescription}>
-              MD to PDF is 100% free! Built with love using React, Vite, and @react-pdf/renderer for
-              high-quality vector PDF generation with selectable text.
+      <section className={styles.guide}>
+        <h2 className={styles.guideTitle}>How It Works</h2>
+        <p className={styles.guideSubtitle}>
+          Everything you need to know to create beautiful PDFs from Markdown.
+        </p>
+
+        <div className={styles.guideGrid}>
+          <div className={styles.guideCard}>
+            <FiBookOpen className={styles.guideIcon} />
+            <h3>What is Markdown?</h3>
+            <p>
+              Markdown is a lightweight text formatting language. Instead of clicking toolbar
+              buttons like in Word, you write simple symbols: <code>**bold**</code> for{' '}
+              <strong>bold</strong>, <code>*italic*</code> for <em>italic</em>,{' '}
+              <code># Heading</code> for headings, and <code>- item</code> for bullet lists.
+              It&apos;s used on GitHub, Reddit, Notion, and most developer tools.
             </p>
           </div>
 
-          <div className={styles.card}>
-            <FiGithub className={styles.cardIcon} />
-            <h2 className={styles.cardTitle}>Tech Stack</h2>
-            <ul className={styles.techList}>
-              <li>React + TypeScript</li>
-              <li>Vite + SCSS Modules</li>
-              <li>@react-pdf/renderer (PDF)</li>
-              <li>unified + remark + rehype</li>
-              <li>pdfjs-dist (preview)</li>
-              <li>react-colorful</li>
+          <div className={styles.guideCard}>
+            <FiEdit3 className={styles.guideIcon} />
+            <h3>The Editor</h3>
+            <p>
+              Type or paste Markdown on the left and see a live PDF preview on the right. The
+              formatting toolbar above the editor lets you insert bold, italic, headings, lists,
+              links, images, code blocks, blockquotes, colored text, alignment wrappers, and image
+              captions — all without memorizing syntax.
+            </p>
+          </div>
+
+          <div className={styles.guideCard}>
+            <FiRotateCcw className={styles.guideIcon} />
+            <h3>Undo &amp; Redo</h3>
+            <p>
+              Made a mistake? Press <kbd>Ctrl+Z</kbd> to undo and <kbd>Ctrl+Shift+Z</kbd> (or{' '}
+              <kbd>Ctrl+Y</kbd>) to redo. The editor keeps a configurable history (default 50
+              steps). Rapid consecutive keystrokes are merged into a single undo step so you
+              don&apos;t have to undo one character at a time.
+            </p>
+          </div>
+
+          <div className={styles.guideCard}>
+            <FiSettings className={styles.guideIcon} />
+            <h3>Customization</h3>
+            <p>
+              Click <strong>Settings</strong> to open the configuration panel. You can change the
+              page background and text colors, pick a decorative background pattern (48 icons with
+              adjustable size, gap, opacity, and color), set page margins, choose a page size (A4,
+              Letter, Legal), toggle page numbering with custom labels, and adjust the undo history
+              size. All settings are saved automatically in your browser.
+            </p>
+          </div>
+
+          <div className={`${styles.guideCard} ${styles.guideCardWide}`}>
+            <FiZap className={styles.guideIcon} />
+            <h3>Tips &amp; Tricks</h3>
+            <ul className={styles.tipsList}>
+              <li>
+                Use <code>Load Example</code> to see every supported feature in action.
+              </li>
+              <li>
+                Images are fetched and embedded — use direct URLs ending in <code>.jpg</code> or{' '}
+                <code>.png</code> for best results.
+              </li>
+              <li>
+                Add captions below images with the <strong>Caption</strong> toolbar button for
+                centered italic text.
+              </li>
+              <li>
+                Wrap content in <code>&lt;div style=&quot;text-align: center&quot;&gt;</code> for
+                centered sections.
+              </li>
+              <li>
+                Use <code>&lt;span style=&quot;color: #3b82f6&quot;&gt;</code> or the color picker
+                to colorize specific text.
+              </li>
+              <li>Everything runs client-side — your content never leaves your browser.</li>
             </ul>
           </div>
         </div>
+      </section>
 
-        <div className={styles.contactSection}>
+      <section className={styles.contact}>
+        <div className={styles.contactInner}>
           <div className={styles.contactHeader}>
             <FiMail className={styles.contactIcon} />
             <h2 className={styles.contactTitle}>Get in Touch</h2>
@@ -123,6 +190,24 @@ export function About() {
               Send Message
             </Button>
           </form>
+        </div>
+      </section>
+
+      <section className={styles.banner}>
+        <div className={styles.bannerItem}>
+          <FiHeart className={styles.bannerIcon} />
+          <div>
+            <h3>100% Free</h3>
+            <p>No subscriptions, no limits. Built with love and open for everyone.</p>
+          </div>
+        </div>
+        <div className={styles.bannerDivider} />
+        <div className={styles.bannerItem}>
+          <FiShield className={styles.bannerIcon} />
+          <div>
+            <h3>Fully Private</h3>
+            <p>Everything runs client-side. Your content never leaves your browser.</p>
+          </div>
         </div>
       </section>
     </div>

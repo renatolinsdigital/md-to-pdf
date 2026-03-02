@@ -221,6 +221,18 @@ export function PdfSettingsPanel({
       </div>
 
       <div className={styles.section}>
+        <h4 className={styles.sectionTitle}>Editor</h4>
+        <Slider
+          label="Undo history size"
+          value={settings.historySize}
+          onChange={(v) => onUpdateSettings({ historySize: v })}
+          min={10}
+          max={200}
+          unit=" steps"
+        />
+      </div>
+
+      <div className={styles.section}>
         <Button variant="ghost" size="sm" onClick={onReset}>
           Reset to Defaults
         </Button>

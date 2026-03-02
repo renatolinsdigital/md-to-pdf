@@ -1,4 +1,4 @@
-import type { ToastItem } from './ToastProvider';
+import type { ToastItem } from './ToastContext';
 import { Toast } from './Toast';
 import styles from './Toast.module.scss';
 

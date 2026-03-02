@@ -1,5 +1,5 @@
 import { FiCheckCircle, FiAlertCircle, FiAlertTriangle, FiInfo } from 'react-icons/fi';
-import type { ToastItem } from './ToastProvider';
+import type { ToastItem } from './ToastContext';
 import styles from './Toast.module.scss';
 
 const icons = {

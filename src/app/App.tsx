@@ -1,6 +1,7 @@
 import { BrowserRouter, useRoutes } from 'react-router-dom';
 import { routes } from '@routes/routeConfig';
 import { Navbar } from '@shared/components/Navbar/Navbar';
+import { Footer } from '@shared/components/Footer/Footer';
 import { ToastProvider } from '@shared/components/Toast/ToastProvider';
 import styles from './App.module.scss';
 
@@ -16,6 +17,7 @@ export function App() {
         <div className={styles.app}>
           <Navbar />
           <AppRoutes />
+          <Footer />
         </div>
       </ToastProvider>
     </BrowserRouter>

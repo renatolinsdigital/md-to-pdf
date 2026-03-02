@@ -13,18 +13,20 @@
   }
 }
 
+// ── Hero ──
 .hero {
   text-align: center;
-  padding: $spacing-12 $spacing-4;
+  padding: $spacing-16 $spacing-4 $spacing-12;
   background: linear-gradient(135deg, $color-primary-50, $color-neutral-50);
 
   @include mobile {
-    padding: $spacing-8 $spacing-4;
+    padding: $spacing-10 $spacing-4 $spacing-8;
   }
 }
 
 .title {
   font-size: $font-size-4xl;
+  font-weight: $font-weight-bold;
   margin-bottom: $spacing-4;
 
   @include mobile {
@@ -35,77 +37,125 @@
 .subtitle {
   font-size: $font-size-md;
   color: $color-neutral-500;
-  max-width: 600px;
+  max-width: 560px;
   margin: 0 auto;
   line-height: $line-height-relaxed;
 }
 
-// ── Content Grid ──
-.content {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: $spacing-8;
+// ── Guide Section ──
+.guide {
   max-width: 1100px;
   margin: 0 auto;
-  padding: $spacing-12 $spacing-6;
+  padding: $spacing-16 $spacing-6 $spacing-12;
+
+  @include mobile {
+    padding: $spacing-10 $spacing-4 $spacing-8;
+  }
+}
+
+.guideTitle {
+  text-align: center;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-2;
+}
+
+.guideSubtitle {
+  text-align: center;
+  font-size: $font-size-sm;
+  color: $color-neutral-500;
+  margin-bottom: $spacing-10;
+}
+
+.guideGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-6;
 
   @include tablet {
-    gap: $spacing-6;
+    grid-template-columns: repeat(2, 1fr);
   }
 
   @include mobile {
     grid-template-columns: 1fr;
-    padding: $spacing-6 $spacing-4;
   }
 }
 
-// ── Info Cards ──
-.info {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-6;
-}
-
-.card {
+.guideCard {
   padding: $spacing-6;
   border-radius: $radius-lg;
   border: 1px solid $color-neutral-200;
   background-color: $color-neutral-0;
-  transition: all $transition-normal;
+  transition:
+    box-shadow $transition-normal,
+    border-color $transition-normal;
 
   &:hover {
     box-shadow: $shadow-md;
     border-color: $color-primary-200;
   }
+
+  h3 {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    margin-bottom: $spacing-3;
+  }
+
+  p {
+    font-size: $font-size-sm;
+    color: $color-neutral-600;
+    line-height: $line-height-relaxed;
+  }
+
+  code {
+    font-size: $font-size-xs;
+    background: $color-neutral-100;
+    padding: 1px 5px;
+    border-radius: $radius-sm;
+    color: $color-primary-700;
+    white-space: nowrap;
+  }
+
+  kbd {
+    display: inline-block;
+    font-size: $font-size-xs;
+    font-family: inherit;
+    background: $color-neutral-100;
+    border: 1px solid $color-neutral-300;
+    border-radius: $radius-sm;
+    padding: 1px 5px;
+    box-shadow: 0 1px 0 $color-neutral-300;
+  }
 }
 
-.cardIcon {
-  font-size: $font-size-2xl;
+.guideCardWide {
+  grid-column: span 2;
+
+  @include mobile {
+    grid-column: span 1;
+  }
+}
+
+.guideIcon {
+  font-size: $font-size-xl;
   color: $color-primary-600;
   margin-bottom: $spacing-3;
 }
 
-.cardTitle {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-semibold;
-  margin-bottom: $spacing-2;
-}
+.tipsList {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-2 $spacing-6;
 
-.cardDescription {
-  font-size: $font-size-sm;
-  color: $color-neutral-500;
-  line-height: $line-height-relaxed;
-}
-
-.techList {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-2;
+  @include mobile {
+    grid-template-columns: 1fr;
+  }
 
   li {
     font-size: $font-size-sm;
     color: $color-neutral-600;
-    padding-left: $spacing-4;
+    line-height: $line-height-relaxed;
+    padding-left: $spacing-5;
     position: relative;
 
     &::before {
@@ -113,27 +163,89 @@
       position: absolute;
       left: 0;
       color: $color-primary-500;
+      font-weight: $font-weight-semibold;
     }
   }
 }
 
-// ── Contact Section ──
-.contactSection {
-  background-color: $color-neutral-0;
-  border: 1px solid $color-neutral-200;
-  border-radius: $radius-lg;
-  padding: $spacing-8;
+// ── Free & Private Banner ──
+.banner {
   display: flex;
-  flex-direction: column;
-  gap: $spacing-6;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-10;
+  max-width: 800px;
+  margin: 0 auto $spacing-16;
+  padding: $spacing-8 $spacing-6;
+  background: linear-gradient(135deg, $color-primary-50, $color-neutral-0);
+  border-top: 1px solid $color-neutral-200;
+  border-bottom: 1px solid $color-neutral-200;
 
   @include mobile {
-    padding: $spacing-6;
+    flex-direction: column;
+    gap: $spacing-6;
+    padding: $spacing-6 $spacing-4;
+    max-width: 100%;
   }
+}
+
+.bannerItem {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-4;
+  flex: 1;
+
+  h3 {
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    margin-bottom: $spacing-1;
+  }
+
+  p {
+    font-size: $font-size-sm;
+    color: $color-neutral-500;
+    line-height: $line-height-relaxed;
+  }
+}
+
+.bannerIcon {
+  flex-shrink: 0;
+  font-size: $font-size-xl;
+  color: $color-primary-600;
+  margin-top: 2px;
+}
+
+.bannerDivider {
+  width: 1px;
+  align-self: stretch;
+  background: $color-neutral-200;
+
+  @include mobile {
+    width: 100%;
+    height: 1px;
+  }
+}
+
+// ── Contact Section ──
+.contact {
+  width: 100%;
+  max-width: 100%;
+  padding: $spacing-12 $spacing-6 $spacing-16;
+  background: linear-gradient(135deg, $color-primary-50, $color-neutral-50);
+
+  @include mobile {
+    padding: $spacing-8 $spacing-4 $spacing-10;
+  }
+}
+
+.contactInner {
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 .contactHeader {
   text-align: center;
+  margin-bottom: $spacing-8;
 }
 
 .contactIcon {

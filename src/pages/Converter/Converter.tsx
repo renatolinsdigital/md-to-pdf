@@ -8,6 +8,7 @@ import { useConverterSettings } from '@domain/hooks/useConverterSettings';
 import { useMarkdownParser } from '@domain/hooks/useMarkdownParser';
 import { usePdfGenerator } from '@domain/hooks/usePdfGenerator';
 import { useLivePdf } from '@domain/hooks/useLivePdf';
+import { useUndoRedo } from '@domain/hooks/useUndoRedo';
 import { EXAMPLE_MARKDOWN } from '@domain/helpers/exampleMarkdown';
 import styles from './Converter.module.scss';
 
@@ -34,6 +35,11 @@ export function Converter() {
     updateBackgroundPattern,
     resetSettings,
   } = useConverterSettings();
+  const { pushChange, undo, redo, resetHistory } = useUndoRedo(
+    markdown,
+    setMarkdown,
+    settings.historySize,
+  );
   const hastTree = useMarkdownParser(markdown);
   const { generatePdf, isGenerating } = usePdfGenerator();
   const { pdfBlob, isRendering } = useLivePdf(hastTree, settings);
@@ -45,6 +51,27 @@ export function Converter() {
       // Storage full or unavailable — ignore
     }
   }, [markdown]);
+
+  // Keyboard shortcuts for undo/redo within the textarea
+  const handleEditorKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      const key = e.key.toLowerCase();
+      if ((e.ctrlKey || e.metaKey) && key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      }
+      // Also support Ctrl+Y for redo
+      if ((e.ctrlKey || e.metaKey) && key === 'y') {
+        e.preventDefault();
+        redo();
+      }
+    },
+    [undo, redo],
+  );
 
   const handleGenerate = () => {
     generatePdf(hastTree, settings);
@@ -76,7 +103,7 @@ export function Converter() {
       <FormattingToolbar
         textareaRef={textareaRef}
         markdown={markdown}
-        onMarkdownChange={setMarkdown}
+        onMarkdownChange={pushChange}
       />
 
       <div className={styles.workspace}>
@@ -86,7 +113,7 @@ export function Converter() {
             <button
               type="button"
               className={styles.exampleButton}
-              onClick={() => setMarkdown(EXAMPLE_MARKDOWN)}
+              onClick={() => resetHistory(EXAMPLE_MARKDOWN)}
               title="Load example markdown that showcases all features"
             >
               <FiFileText />
@@ -97,7 +124,8 @@ export function Converter() {
             ref={textareaRef}
             className={styles.editor}
             value={markdown}
-            onChange={(e) => setMarkdown(e.target.value)}
+            onChange={(e) => pushChange(e.target.value)}
+            onKeyDown={handleEditorKeyDown}
             placeholder="Enter your markdown here..."
             spellCheck={false}
           />

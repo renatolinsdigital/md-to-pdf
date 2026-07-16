@@ -7,6 +7,8 @@ A production-grade Markdown-to-PDF converter built with React, Vite, TypeScript,
 ![Vite](https://img.shields.io/badge/Vite-7-purple)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
+**Live preview:** [pdf-from-md.netlify.app](https://pdf-from-md.netlify.app/)
+
 ![MD to PDF screenshot](print/print.png)
 
 Type Markdown on the left, watch a real vector PDF render on the right — not an HTML approximation of one. The editor pane parses your Markdown through a `unified`/`remark`/`rehype` pipeline, renders it straight into `@react-pdf/renderer` primitives (with `refractor`-powered syntax highlighting for code blocks), and paints the resulting PDF onto a canvas via `pdfjs-dist`. What you see in the preview is exactly what you download. Everything runs client-side — no backend, no upload.

@@ -102,7 +102,7 @@ export function DonateModal({ open, onClose }: DonateModalProps) {
 
         {/* Text */}
         <h2 className={styles.title}>
-          Buy our cat a treat <span className={styles.emoji}>🐾</span>
+          Buy my cat a treat <span className={styles.emoji}>🐾</span>
         </h2>
         <p className={styles.description}>
           Your support keeps this tool free and ad-free. Every contribution makes our cat purr with

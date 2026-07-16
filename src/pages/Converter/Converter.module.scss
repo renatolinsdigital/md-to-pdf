@@ -1,3 +1,5 @@
+@use '@styles/animations' as *;
+
 .converter {
   max-width: 1200px;
   margin: 0 auto;
@@ -10,15 +12,6 @@
 
   @include desktop {
     padding: $spacing-4 $spacing-6 $spacing-4;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
   }
 }
 

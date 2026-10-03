@@ -3,31 +3,22 @@
  * e.g. "color: red; background-color: blue" → { color: 'red', backgroundColor: 'blue' }
  */
 export function parseInlineStyle(styleString: string | undefined): Record<string, string> {
-  if (!styleString) return {};
-
   const result: Record<string, string> = {};
+  if (!styleString) return result;
 
-  styleString.split(';').forEach((declaration) => {
-    const [property, ...valueParts] = declaration.split(':');
-    if (property && valueParts.length > 0) {
-      const prop = property.trim();
-      const value = valueParts.join(':').trim();
-      if (prop && value) {
-        // Convert kebab-case to camelCase
-        const camelProp = prop.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase());
-        result[camelProp] = value;
-      }
+  for (const declaration of styleString.split(';')) {
+    const separator = declaration.indexOf(':');
+    if (separator === -1) continue;
+
+    const property = declaration.slice(0, separator).trim();
+    const value = declaration.slice(separator + 1).trim();
+    if (property && value) {
+      const camelCaseProperty = property.replace(/-([a-z])/g, (_, letter: string) =>
+        letter.toUpperCase(),
+      );
+      result[camelCaseProperty] = value;
     }
-  });
+  }
 
   return result;
-}
-
-/**
- * Convert mm to PDF points (1mm ≈ 2.835pt)
- */
-export function mmToPt(mm: number): number {
-  const val = Number(mm);
-  if (Number.isNaN(val)) return 0;
-  return val * 2.835;
 }

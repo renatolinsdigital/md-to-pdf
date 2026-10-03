@@ -1,3 +1,5 @@
+@use '@styles/animations' as *;
+
 .wrapper {
   position: relative;
   display: flex;
@@ -43,22 +45,11 @@
   display: flex;
   flex-direction: column;
   gap: $spacing-2;
-  animation: fadeIn 150ms ease;
+  animation: popoverIn 150ms ease;
 
   :global(.react-colorful) {
     width: 200px;
     height: 160px;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 

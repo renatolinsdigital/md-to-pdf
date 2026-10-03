@@ -16,7 +16,7 @@ import {
 import { Button } from '@shared/components/Button/Button';
 import styles from './Home.module.scss';
 
-const features = [
+const FEATURES = [
   {
     icon: FiEye,
     title: 'Live Preview',
@@ -43,7 +43,46 @@ const features = [
     icon: FiRotateCcw,
     title: 'Undo & Redo',
     description:
-      'Full undo/redo support in the editor. Press Ctrl+Z to undo and Ctrl+Shift+Z to redo, up to 50 steps.',
+      'Full undo/redo support in the editor. Press Ctrl+Z to undo and Ctrl+Shift+Z to redo, with an adjustable history size.',
+  },
+];
+
+const WHY_MARKDOWN_REASONS = [
+  {
+    icon: FiEdit3,
+    title: 'Easy to Write',
+    description:
+      'Simple, intuitive syntax that anyone can learn in minutes. No complex toolbars or formatting menus. Just type.',
+  },
+  {
+    icon: FiCode,
+    title: 'Pure Text',
+    description:
+      "Markdown files are plain text. They're lightweight, diffable, version-controllable, and will never become unreadable due to proprietary formats.",
+  },
+  {
+    icon: FiGlobe,
+    title: 'Widely Adopted',
+    description:
+      'GitHub, GitLab, Stack Overflow, Reddit, Notion, and countless other platforms use Markdown as their primary content format.',
+  },
+  {
+    icon: FiLayers,
+    title: 'Consistent Formatting',
+    description:
+      'Standardized marks produce predictable output everywhere: headings, lists, emphasis, code blocks, and tables always look right.',
+  },
+  {
+    icon: FiCpu,
+    title: 'AI-Friendly',
+    description:
+      'ChatGPT, Claude, Gemini, and other AI assistants output Markdown by default. Convert their responses directly into polished PDFs.',
+  },
+  {
+    icon: FiBookOpen,
+    title: 'Built for Docs',
+    description:
+      "READMEs, wikis, API references, technical specs: the documentation world runs on Markdown. It's portable and transferable to any system.",
   },
 ];
 
@@ -101,7 +140,7 @@ export function Home() {
           Powerful features to create professional PDF documents from markdown
         </p>
         <div className={styles.featureGrid}>
-          {features.map((feature) => (
+          {FEATURES.map((feature) => (
             <div key={feature.title} className={styles.featureCard}>
               <div className={styles.featureIcon}>
                 <feature.icon />
@@ -119,54 +158,13 @@ export function Home() {
           Markdown has become the go-to format for writing structured content, and for good reason.
         </p>
         <div className={styles.whyGrid}>
-          <div className={styles.whyCard}>
-            <FiEdit3 className={styles.whyIcon} />
-            <h3>Easy to Write</h3>
-            <p>
-              Simple, intuitive syntax that anyone can learn in minutes. No complex toolbars or
-              formatting menus. Just type.
-            </p>
-          </div>
-          <div className={styles.whyCard}>
-            <FiCode className={styles.whyIcon} />
-            <h3>Pure Text</h3>
-            <p>
-              Markdown files are plain text. They&apos;re lightweight, diffable,
-              version-controllable, and will never become unreadable due to proprietary formats.
-            </p>
-          </div>
-          <div className={styles.whyCard}>
-            <FiGlobe className={styles.whyIcon} />
-            <h3>Widely Adopted</h3>
-            <p>
-              GitHub, GitLab, Stack Overflow, Reddit, Notion, and countless other platforms use
-              Markdown as their primary content format.
-            </p>
-          </div>
-          <div className={styles.whyCard}>
-            <FiLayers className={styles.whyIcon} />
-            <h3>Consistent Formatting</h3>
-            <p>
-              Standardized marks produce predictable output everywhere: headings, lists, emphasis,
-              code blocks, and tables always look right.
-            </p>
-          </div>
-          <div className={styles.whyCard}>
-            <FiCpu className={styles.whyIcon} />
-            <h3>AI-Friendly</h3>
-            <p>
-              ChatGPT, Claude, Gemini, and other AI assistants output Markdown by default. Convert
-              their responses directly into polished PDFs.
-            </p>
-          </div>
-          <div className={styles.whyCard}>
-            <FiBookOpen className={styles.whyIcon} />
-            <h3>Built for Docs</h3>
-            <p>
-              READMEs, wikis, API references, technical specs: the documentation world runs on
-              Markdown. It&apos;s portable and transferable to any system.
-            </p>
-          </div>
+          {WHY_MARKDOWN_REASONS.map((reason) => (
+            <div key={reason.title} className={styles.whyCard}>
+              <reason.icon className={styles.whyIcon} />
+              <h3>{reason.title}</h3>
+              <p>{reason.description}</p>
+            </div>
+          ))}
         </div>
       </section>
 

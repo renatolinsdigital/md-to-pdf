@@ -2,30 +2,9 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import { PdfSettingsPanel } from './PdfSettingsPanel';
-import type { ConverterSettings } from '@domain/hooks/useConverterSettings';
+import { DEFAULT_SETTINGS, type ConverterSettings } from '@domain/hooks/useConverterSettings';
 
-const baseSettings: ConverterSettings = {
-  backgroundColor: '#FFFFFF',
-  backgroundPattern: {
-    patternId: 'none',
-    opacity: 0.04,
-    elementSize: 22,
-    gap: 20,
-    patternColor: '#000000',
-  },
-  margins: { top: 20, right: 20, bottom: 20, left: 20 },
-  pageSize: 'A4',
-  pageNumber: {
-    enabled: true,
-    pageLabel: 'Page',
-    ofLabel: 'of',
-    fontSize: 10,
-  },
-  textColor: '#000000',
-  historySize: 50,
-};
-
-function renderPanel(settings: ConverterSettings = baseSettings) {
+function renderPanel(settings: ConverterSettings = DEFAULT_SETTINGS) {
   const onUpdateSettings = vi.fn();
   const onUpdateMargins = vi.fn();
   const onUpdatePageNumber = vi.fn();
@@ -79,8 +58,8 @@ describe('PdfSettingsPanel', () => {
 
   it('shows pattern controls when a pattern is active', () => {
     renderPanel({
-      ...baseSettings,
-      backgroundPattern: { ...baseSettings.backgroundPattern, patternId: 'dots' },
+      ...DEFAULT_SETTINGS,
+      backgroundPattern: { ...DEFAULT_SETTINGS.backgroundPattern, patternId: 'dots' },
     });
     expect(screen.getByText('Pattern opacity')).toBeInTheDocument();
   });

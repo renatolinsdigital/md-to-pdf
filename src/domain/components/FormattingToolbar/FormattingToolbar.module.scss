@@ -1,3 +1,5 @@
+@use '@styles/animations' as *;
+
 .toolbar {
   background-color: $color-neutral-0;
   border: 1px solid $color-neutral-200;
@@ -96,7 +98,7 @@
   flex-direction: column;
   gap: $spacing-3;
   width: 224px;
-  animation: dropIn 150ms ease;
+  animation: popoverIn 150ms ease;
 
   // Override react-colorful dimensions
   :global(.react-colorful) {
@@ -218,15 +220,5 @@
 
   &:hover {
     background-color: $color-primary-700;
-  }
-}
-@keyframes dropIn {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
   }
 }

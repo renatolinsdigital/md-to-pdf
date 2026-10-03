@@ -1,3 +1,5 @@
+@use '@styles/animations' as *;
+
 .app {
   min-height: 100vh;
   display: flex;
@@ -11,13 +13,9 @@
   animation: fadeIn $transition-normal;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.pageLoading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
 }

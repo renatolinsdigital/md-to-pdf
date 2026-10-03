@@ -1,8 +1,8 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, type KeyboardEvent } from 'react';
 
 /**
- * Minimal diff between two strings.
- * Finds the common prefix and suffix, then stores only the changed region.
+ * Minimal diff between two strings: only the changed region between their
+ * common prefix and suffix is stored.
  */
 interface Diff {
   /** Start index where the change begins */
@@ -14,14 +14,14 @@ interface Diff {
 }
 
 function computeDiff(oldStr: string, newStr: string): Diff {
-  // Find common prefix length
-  let prefixLen = 0;
   const minLen = Math.min(oldStr.length, newStr.length);
+
+  let prefixLen = 0;
   while (prefixLen < minLen && oldStr[prefixLen] === newStr[prefixLen]) {
     prefixLen++;
   }
 
-  // Find common suffix length (not overlapping with prefix)
+  // The suffix must not overlap the prefix
   let suffixLen = 0;
   const maxSuffix = minLen - prefixLen;
   while (
@@ -38,29 +38,23 @@ function computeDiff(oldStr: string, newStr: string): Diff {
   };
 }
 
+/** Re-applies a diff, or reverts it when `reverse` is set. */
 function applyDiff(text: string, diff: Diff, reverse: boolean): string {
-  if (reverse) {
-    // Undo: remove the inserted text, put back the removed text
-    return text.slice(0, diff.start) + diff.removed + text.slice(diff.start + diff.inserted.length);
-  }
-  // Redo: remove the removed text, put back the inserted text
-  return text.slice(0, diff.start) + diff.inserted + text.slice(diff.start + diff.removed.length);
+  const [from, to] = reverse ? [diff.inserted, diff.removed] : [diff.removed, diff.inserted];
+  return text.slice(0, diff.start) + to + text.slice(diff.start + from.length);
 }
 
-/**
- * Debounce interval (ms) - sequential small edits within this
- * window are merged into a single undo entry.
- */
-const MERGE_WINDOW = 400;
+/** Consecutive edits closer together than this become a single undo step. */
+const MERGE_WINDOW_MS = 400;
 
 export function useUndoRedo(
-  currentText: string,
+  initialText: string,
   setText: (value: string) => void,
   maxHistory = 50,
 ) {
   const undoStack = useRef<Diff[]>([]);
   const redoStack = useRef<Diff[]>([]);
-  const lastTextRef = useRef(currentText);
+  const lastTextRef = useRef(initialText);
   const lastEditTime = useRef(0);
   const maxHistoryRef = useRef(maxHistory);
 
@@ -68,41 +62,27 @@ export function useUndoRedo(
     maxHistoryRef.current = maxHistory;
 
     // Trim stacks when maxHistory decreases
-    if (undoStack.current.length > maxHistory) {
-      undoStack.current.splice(0, undoStack.current.length - maxHistory);
-    }
-    if (redoStack.current.length > maxHistory) {
-      redoStack.current.splice(0, redoStack.current.length - maxHistory);
+    for (const stack of [undoStack.current, redoStack.current]) {
+      if (stack.length > maxHistory) stack.splice(0, stack.length - maxHistory);
     }
   }, [maxHistory]);
 
-  /**
-   * Call this whenever the markdown changes (via typing or toolbar actions).
-   * It computes a diff and pushes it onto the undo stack.
-   */
+  /** Records a change to the text (typing or toolbar action) and applies it. */
   const pushChange = useCallback(
     (newText: string) => {
       const oldText = lastTextRef.current;
-      if (newText === oldText) {
-        setText(newText);
-        return;
-      }
+      if (newText === oldText) return;
 
-      const diff = computeDiff(oldText, newText);
       const now = Date.now();
+      const undo = undoStack.current;
+      const previous = undo[undo.length - 1];
 
-      // Merge consecutive small edits within the debounce window
-      if (now - lastEditTime.current < MERGE_WINDOW && undoStack.current.length > 0) {
-        const prev = undoStack.current[undoStack.current.length - 1]!;
-        // Merge: recompute diff from the state *before* the previous diff
-        const originalText = applyDiff(oldText, prev, true);
-        const merged = computeDiff(originalText, newText);
-        undoStack.current[undoStack.current.length - 1] = merged;
+      if (previous && now - lastEditTime.current < MERGE_WINDOW_MS) {
+        // Fold into the previous step: diff from the text as it was before that step
+        undo[undo.length - 1] = computeDiff(applyDiff(oldText, previous, true), newText);
       } else {
-        undoStack.current.push(diff);
-        if (undoStack.current.length > maxHistoryRef.current) {
-          undoStack.current.shift();
-        }
+        undo.push(computeDiff(oldText, newText));
+        if (undo.length > maxHistoryRef.current) undo.shift();
       }
 
       lastEditTime.current = now;
@@ -115,26 +95,22 @@ export function useUndoRedo(
   );
 
   const undo = useCallback(() => {
-    if (undoStack.current.length === 0) return;
-    const diff = undoStack.current.pop()!;
-    const restored = applyDiff(lastTextRef.current, diff, true);
+    const diff = undoStack.current.pop();
+    if (!diff) return;
     redoStack.current.push(diff);
-    lastTextRef.current = restored;
-    setText(restored);
+    lastTextRef.current = applyDiff(lastTextRef.current, diff, true);
+    setText(lastTextRef.current);
   }, [setText]);
 
   const redo = useCallback(() => {
-    if (redoStack.current.length === 0) return;
-    const diff = redoStack.current.pop()!;
-    const restored = applyDiff(lastTextRef.current, diff, false);
+    const diff = redoStack.current.pop();
+    if (!diff) return;
     undoStack.current.push(diff);
-    lastTextRef.current = restored;
-    setText(restored);
+    lastTextRef.current = applyDiff(lastTextRef.current, diff, false);
+    setText(lastTextRef.current);
   }, [setText]);
 
-  /**
-   * Reset history (e.g. when loading example markdown).
-   */
+  /** Replaces the text and clears history (e.g. when loading the example). */
   const resetHistory = useCallback(
     (newText: string) => {
       undoStack.current = [];
@@ -146,5 +122,18 @@ export function useUndoRedo(
     [setText],
   );
 
-  return { pushChange, undo, redo, resetHistory };
+  /** Ctrl/Cmd+Z undoes; Ctrl/Cmd+Shift+Z and Ctrl/Cmd+Y redo. */
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      if (!(e.ctrlKey || e.metaKey) || (key !== 'z' && key !== 'y')) return;
+
+      e.preventDefault();
+      if (key === 'z' && !e.shiftKey) undo();
+      else redo();
+    },
+    [undo, redo],
+  );
+
+  return { pushChange, resetHistory, handleKeyDown };
 }

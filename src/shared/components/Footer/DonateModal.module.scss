@@ -1,3 +1,5 @@
+@use '@styles/animations' as *;
+
 // ── Donate Modal - Modern glass style ──
 
 // ── Dialog chrome ──
@@ -16,20 +18,11 @@
   &::backdrop {
     background: rgba(17, 24, 39, 0.55);
     backdrop-filter: blur(6px);
-    animation: backdropIn 350ms ease forwards;
+    animation: fadeIn 350ms ease forwards;
   }
 
   &[open] {
     animation: modalPop 500ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-  }
-}
-
-@keyframes backdropIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
   }
 }
 

@@ -1,26 +1,26 @@
-import type { TextareaHTMLAttributes } from 'react';
+import { useId, type TextareaHTMLAttributes } from 'react';
+import { classNames } from '@shared/helpers/classNames';
 import styles from './Textarea.module.scss';
 
 interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
-  mono?: boolean;
   fullWidth?: boolean;
 }
 
 export function Textarea({
   label,
   error,
-  mono = false,
   fullWidth = false,
-  className = '',
+  className,
   id,
   ...props
 }: TextareaProps) {
-  const textareaId = id || label?.toLowerCase().replace(/\s+/g, '-');
+  const generatedId = useId();
+  const textareaId = id ?? generatedId;
 
   return (
-    <div className={`${styles.wrapper} ${fullWidth ? styles.fullWidth : ''} ${className}`}>
+    <div className={classNames(styles.wrapper, fullWidth && styles.fullWidth, className)}>
       {label && (
         <label htmlFor={textareaId} className={styles.label}>
           {label}
@@ -28,7 +28,7 @@ export function Textarea({
       )}
       <textarea
         id={textareaId}
-        className={`${styles.textarea} ${mono ? styles.mono : ''} ${error ? styles.textareaError : ''}`}
+        className={classNames(styles.textarea, error && styles.textareaError)}
         {...props}
       />
       {error && <span className={styles.error}>{error}</span>}

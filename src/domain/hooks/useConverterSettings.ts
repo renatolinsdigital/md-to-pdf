@@ -1,4 +1,5 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { readStorage, writeStorage } from '@shared/helpers/storage';
 
 export interface ConverterSettings {
   backgroundColor: string;
@@ -28,7 +29,7 @@ export interface ConverterSettings {
 
 const STORAGE_KEY = 'md-to-pdf-settings';
 
-const defaultSettings: ConverterSettings = {
+export const DEFAULT_SETTINGS: ConverterSettings = {
   backgroundColor: '#FFFFFF',
   backgroundPattern: {
     patternId: 'none',
@@ -50,87 +51,54 @@ const defaultSettings: ConverterSettings = {
 };
 
 function loadSettings(): ConverterSettings {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return {
-        ...defaultSettings,
-        ...parsed,
-        backgroundPattern: {
-          ...defaultSettings.backgroundPattern,
-          ...(parsed.backgroundPattern ?? {}),
-        },
-        margins: { ...defaultSettings.margins, ...(parsed.margins ?? {}) },
-        pageNumber: { ...defaultSettings.pageNumber, ...(parsed.pageNumber ?? {}) },
-      };
-    }
-  } catch {
-    // ignore parse errors
-  }
-  return defaultSettings;
-}
+  const stored = readStorage(STORAGE_KEY);
+  if (!stored) return DEFAULT_SETTINGS;
 
-function persistSettings(settings: ConverterSettings): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    const saved = JSON.parse(stored) as Partial<ConverterSettings>;
+    // Merge nested groups too, so settings saved by an older version gain any newer fields
+    return {
+      ...DEFAULT_SETTINGS,
+      ...saved,
+      backgroundPattern: { ...DEFAULT_SETTINGS.backgroundPattern, ...saved.backgroundPattern },
+      margins: { ...DEFAULT_SETTINGS.margins, ...saved.margins },
+      pageNumber: { ...DEFAULT_SETTINGS.pageNumber, ...saved.pageNumber },
+    };
   } catch {
-    // Storage full or unavailable - ignore
+    return DEFAULT_SETTINGS; // Corrupted JSON
   }
 }
 
 export function useConverterSettings() {
-  const [settings, setSettings] = useState<ConverterSettings>(loadSettings);
+  const [settings, setSettings] = useState(loadSettings);
+
+  useEffect(() => {
+    writeStorage(STORAGE_KEY, JSON.stringify(settings));
+  }, [settings]);
 
   const updateSettings = useCallback((updates: Partial<ConverterSettings>) => {
-    setSettings((prev) => {
-      const next = { ...prev, ...updates };
-      persistSettings(next);
-      return next;
-    });
+    setSettings((prev) => ({ ...prev, ...updates }));
   }, []);
 
-  const updateMargins = useCallback((marginUpdates: Partial<ConverterSettings['margins']>) => {
-    setSettings((prev) => {
-      const next = { ...prev, margins: { ...prev.margins, ...marginUpdates } };
-      persistSettings(next);
-      return next;
-    });
+  const updateMargins = useCallback((updates: Partial<ConverterSettings['margins']>) => {
+    setSettings((prev) => ({ ...prev, margins: { ...prev.margins, ...updates } }));
   }, []);
 
-  const updatePageNumber = useCallback(
-    (pageNumberUpdates: Partial<ConverterSettings['pageNumber']>) => {
-      setSettings((prev) => {
-        const next = { ...prev, pageNumber: { ...prev.pageNumber, ...pageNumberUpdates } };
-        persistSettings(next);
-        return next;
-      });
-    },
-    [],
-  );
+  const updatePageNumber = useCallback((updates: Partial<ConverterSettings['pageNumber']>) => {
+    setSettings((prev) => ({ ...prev, pageNumber: { ...prev.pageNumber, ...updates } }));
+  }, []);
 
   const updateBackgroundPattern = useCallback(
-    (patternUpdates: Partial<ConverterSettings['backgroundPattern']>) => {
-      setSettings((prev) => {
-        const next = {
-          ...prev,
-          backgroundPattern: { ...prev.backgroundPattern, ...patternUpdates },
-        };
-        persistSettings(next);
-        return next;
-      });
+    (updates: Partial<ConverterSettings['backgroundPattern']>) => {
+      setSettings((prev) => ({
+        ...prev,
+        backgroundPattern: { ...prev.backgroundPattern, ...updates },
+      }));
     },
     [],
   );
 
-  const resetSettings = useCallback(() => {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // ignore
-    }
-    setSettings(defaultSettings);
-  }, []);
+  const resetSettings = useCallback(() => setSettings(DEFAULT_SETTINGS), []);
 
   return {
     settings,

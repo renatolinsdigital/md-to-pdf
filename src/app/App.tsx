@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { BrowserRouter, useRoutes } from 'react-router-dom';
 import { routes } from '@routes/routeConfig';
 import { Navbar } from '@shared/components/Navbar/Navbar';
@@ -7,7 +8,12 @@ import styles from './App.module.scss';
 
 function AppRoutes() {
   const element = useRoutes(routes);
-  return <main className={styles.main}>{element}</main>;
+  return (
+    <main className={styles.main}>
+      {/* Pages are lazy-loaded; this shows while a page's chunk downloads */}
+      <Suspense fallback={<div className={styles.pageLoading}>Loading...</div>}>{element}</Suspense>
+    </main>
+  );
 }
 
 export function App() {

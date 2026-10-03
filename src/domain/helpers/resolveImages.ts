@@ -1,8 +1,10 @@
-import type { Root, RootContent, Element, ElementContent } from 'hast';
+import type { Element, Root, RootContent } from 'hast';
 
-/**
- * Convert a Blob to a base64 data-URL string.
- */
+/** The only data-URL formats @react-pdf/renderer decodes reliably. */
+export function isEmbeddableDataUrl(url: string): boolean {
+  return /^data:image\/(jpeg|png);base64,/.test(url);
+}
+
 function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -12,12 +14,7 @@ function blobToDataUrl(blob: Blob): Promise<string> {
   });
 }
 
-/**
- * Fetch a remote image, convert to JPEG or PNG, and return a data-URL.
- *
- * @react-pdf/image's `resolveBase64Image` reliably handles data-URLs
- * in the form `data:image/(jpeg|png);base64,...`.
- */
+/** Fetches an image as a JPEG/PNG data-URL, re-encoding other formats (WebP, AVIF, ...) as JPEG. */
 async function fetchImageAsDataUrl(src: string): Promise<string> {
   const response = await fetch(src);
   if (!response.ok) {
@@ -25,70 +22,73 @@ async function fetchImageAsDataUrl(src: string): Promise<string> {
   }
   const blob = await response.blob();
 
-  // JPEG / PNG - convert raw bytes to a data-URL
   if (blob.type === 'image/jpeg' || blob.type === 'image/png') {
     return blobToDataUrl(blob);
   }
 
-  // Anything else (WebP, AVIF, etc.) - re-encode as JPEG via canvas
   const bitmap = await createImageBitmap(blob);
   const canvas = document.createElement('canvas');
   canvas.width = bitmap.width;
   canvas.height = bitmap.height;
-  const ctx = canvas.getContext('2d')!;
-  ctx.fillStyle = '#ffffff';
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas 2D context is unavailable');
+  ctx.fillStyle = '#ffffff'; // JPEG has no alpha channel
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(bitmap, 0, 0);
   bitmap.close();
 
-  // canvas.toDataURL always returns `data:image/jpeg;base64,...`
   return canvas.toDataURL('image/jpeg', 0.85);
 }
 
-/** Validate that a data-URL has a format @react-pdf can decode. */
-function isUsableDataUrl(url: string): boolean {
-  return /^data:image\/(jpeg|png);base64,/.test(url);
-}
+/**
+ * Recently loaded images. The live preview re-renders on every pause in typing,
+ * and without this each render would refetch and re-encode every image.
+ */
+const imageCache = new Map<string, Promise<string>>();
+const IMAGE_CACHE_LIMIT = 50;
 
-function isElement(node: RootContent | ElementContent): node is Element {
-  return node.type === 'element';
-}
+function loadImage(src: string): Promise<string> {
+  const cached = imageCache.get(src);
+  if (cached) return cached;
 
-/** Collect all `<img>` element nodes from a subtree. */
-function collectImageNodes(node: RootContent | ElementContent, out: Element[]): void {
-  if (!isElement(node)) return;
-  if (node.tagName === 'img') out.push(node);
-  for (const child of node.children) {
-    collectImageNodes(child, out);
+  const pending = fetchImageAsDataUrl(src);
+  imageCache.set(src, pending);
+  // Forget failures so the image is retried on the next render
+  pending.catch(() => imageCache.delete(src));
+
+  if (imageCache.size > IMAGE_CACHE_LIMIT) {
+    const oldest = imageCache.keys().next().value;
+    if (oldest !== undefined) imageCache.delete(oldest);
   }
+  return pending;
 }
 
-async function resolveNode(node: Element): Promise<void> {
-  if (typeof node.properties?.src !== 'string') return;
-  const src = node.properties.src;
+function collectImages(nodes: RootContent[]): Element[] {
+  return nodes.flatMap((node) => {
+    if (node.type !== 'element') return [];
+    const nested = collectImages(node.children);
+    return node.tagName === 'img' ? [node, ...nested] : nested;
+  });
+}
 
-  if (src.startsWith('data:image/svg')) {
-    node.properties.src = '';
-  } else if (/^https?:\/\//.test(src)) {
-    try {
-      const dataUrl = await fetchImageAsDataUrl(src);
-      node.properties.src = isUsableDataUrl(dataUrl) ? dataUrl : '';
-    } catch {
-      node.properties.src = '';
-    }
+async function resolveImage(img: Element): Promise<void> {
+  const { src } = img.properties;
+  if (typeof src !== 'string' || !/^https?:\/\//.test(src)) return;
+
+  try {
+    const dataUrl = await loadImage(src);
+    img.properties.src = isEmbeddableDataUrl(dataUrl) ? dataUrl : '';
+  } catch {
+    // Broken links are expected in user content: the image is left out of the PDF
+    img.properties.src = '';
   }
 }
 
 /**
- * Walk a HAST tree and resolve all remote images to data-URL strings
- * so @react-pdf/renderer can embed them without CORS or format issues.
- * Fetches are parallelized for performance. Mutates the tree in-place.
+ * Replaces remote image URLs with data-URLs so @react-pdf/renderer can embed
+ * them without CORS or format issues. Mutates the tree in place.
  */
 export async function resolveImages(tree: Root): Promise<Root> {
-  const images: Element[] = [];
-  for (const child of tree.children) {
-    if (isElement(child)) collectImageNodes(child, images);
-  }
-  await Promise.all(images.map(resolveNode));
+  await Promise.all(collectImages(tree.children).map(resolveImage));
   return tree;
 }

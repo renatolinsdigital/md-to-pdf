@@ -30,35 +30,29 @@ Routes are defined in `src/routes/routeConfig.tsx` using React Router v7. All pa
 | `/converter` | Converter | Main markdown editor + PDF |
 | `/about`     | About     | Project info + contact     |
 
-## Dual Rendering Architecture
+## Rendering Pipeline
 
-The converter uses two independent rendering pipelines from the same markdown source:
-
-### Browser Preview (react-markdown)
+The live preview and the downloaded file come from the same PDF, so the preview is exactly what you get:
 
 ```
-Markdown string → react-markdown → remark-gfm → rehype-raw → React DOM
+Markdown string → parseMarkdown (unified: remark-parse → remark-gfm → remark-rehype → rehype-raw) → HAST
+                                                                                                    ↓
+                                    renderPdf service: resolveImages + rasterizePattern → PdfDocument
+                                                                                                    ↓
+                                                              hastToPdf walker → @react-pdf primitives → PDF blob
+                                                                                                    ↓
+                                 Live preview: useLivePdf (debounced) → PdfCanvasViewer (pdf.js page images)
+                                 Download:     usePdfGenerator → file download
 ```
 
-This renders a live preview using standard HTML elements with SCSS styling.
-
-### PDF Generation (@react-pdf/renderer)
-
-```
-Markdown string → unified → remark-parse → remark-gfm → remark-rehype → rehype-raw → HAST
-                                                                                        ↓
-                                                                              hastToPdf walker
-                                                                                        ↓
-                                                                        @react-pdf primitives
-                                                                    (Document, Page, View, Text, Link, Image)
-```
+If a render fails (typically an image the renderer can't decode), `renderPdf` retries once without images.
 
 The custom `hastToPdf` walker recursively converts HAST (Hypertext Abstract Syntax Tree) nodes into `@react-pdf/renderer` components, supporting:
 
 - Headings (h1–h6) with scaled font sizes
 - Paragraphs, bold, italic, strikethrough
-- Ordered and unordered lists (with bullet/number prefixes)
-- Code blocks (monospace font, grey background)
+- Ordered, unordered and task lists (with bullet/number/checkbox prefixes)
+- Code blocks (syntax-highlighted with refractor, One Dark colours)
 - Blockquotes (left border + indentation)
 - Tables (header row + bordered cells)
 - Links (blue, underlined)
@@ -71,8 +65,10 @@ The custom `hastToPdf` walker recursively converts HAST (Hypertext Abstract Synt
 - **No global store** — state is managed via React hooks + context
 - `useConverterSettings` — persists settings to localStorage
 - `useMarkdownParser` — memoized HAST parsing
-- `usePdfGenerator` — handles PDF blob generation + download
-- `useToast` — toast notification context
+- `useLivePdf` — debounced PDF re-rendering for the live preview
+- `usePdfGenerator` — renders the PDF and downloads it
+- `useUndoRedo` — editor history and its keyboard shortcuts
+- `useToast` (`shared/hooks`) — toast notification context
 
 ## Font Strategy
 

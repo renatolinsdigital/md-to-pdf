@@ -52,7 +52,7 @@ Props: `fullWidth`, `disabled`
 
 ### Input / Textarea
 
-Standard form controls with `label`, `error`, `fullWidth` props. Textarea adds a `mono` prop for monospace font.
+Standard form controls with `label`, `error`, `fullWidth` props. Their shared look comes from the form mixins in `global-styles/mixins.scss`.
 
 ### Toast
 

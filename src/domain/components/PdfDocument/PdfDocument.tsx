@@ -1,9 +1,8 @@
-import React from 'react';
 import { Document, Page, Text, View, Image } from '@react-pdf/renderer';
 import type { Root } from 'hast';
 import type { ConverterSettings } from '@domain/hooks/useConverterSettings';
-import { hastToReactPdf, resetKeyCounter } from '@domain/helpers/hastToPdf';
-import { mmToPt } from '@domain/helpers/parseInlineStyle';
+import { hastToReactPdf } from '@domain/helpers/hastToPdf';
+import { mmToPt } from '@domain/helpers/units';
 import { registerFonts } from '@domain/helpers/fontRegistration';
 
 interface PdfDocumentProps {
@@ -13,77 +12,57 @@ interface PdfDocumentProps {
   patternDataUrl?: string | null;
 }
 
+/** Room reserved below the content for the page number. */
+const PAGE_NUMBER_SPACE = 30;
+
 registerFonts();
 
 export function PdfDocument({ hastTree, settings, patternDataUrl }: PdfDocumentProps) {
-  resetKeyCounter();
+  const { margins, pageNumber } = settings;
+  const marginBottom = mmToPt(margins.bottom);
 
-  const marginTop = mmToPt(settings.margins.top);
-  const marginRight = mmToPt(settings.margins.right);
-  const marginBottom = mmToPt(settings.margins.bottom);
-  const marginLeft = mmToPt(settings.margins.left);
-  const footerSpace = settings.pageNumber.enabled ? 30 : 0;
-
-  const pdfContent = hastToReactPdf(hastTree, settings.textColor);
-
-  return React.createElement(
-    Document,
-    { title: 'MD to PDF Document', author: 'MD to PDF Converter' },
-    React.createElement(
-      Page,
-      {
-        size: settings.pageSize,
-        style: {
+  return (
+    <Document title="MD to PDF Document" author="MD to PDF Converter">
+      <Page
+        size={settings.pageSize}
+        style={{
           backgroundColor: settings.backgroundColor,
-          paddingTop: marginTop,
-          paddingRight: marginRight,
-          paddingBottom: marginBottom + footerSpace,
-          paddingLeft: marginLeft,
+          paddingTop: mmToPt(margins.top),
+          paddingRight: mmToPt(margins.right),
+          paddingBottom: marginBottom + (pageNumber.enabled ? PAGE_NUMBER_SPACE : 0),
+          paddingLeft: mmToPt(margins.left),
           fontFamily: 'Roboto',
           fontSize: 12,
-        },
-      },
-      // Background pattern – fills the content area behind text on every page
-      patternDataUrl
-        ? React.createElement(
-            View,
-            {
-              fixed: true,
-              style: {
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-              },
-            },
-            React.createElement(Image, {
-              src: patternDataUrl,
-              style: {
-                width: '100%',
-                height: '100%',
-              },
-            }),
-          )
-        : null,
-      React.createElement(View, null, pdfContent),
-      settings.pageNumber.enabled
-        ? React.createElement(Text, {
-            fixed: true,
-            style: {
+        }}
+      >
+        {/* Fixed, so the pattern repeats behind the content on every page */}
+        {patternDataUrl ? (
+          <View fixed style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+            <Image src={patternDataUrl} style={{ width: '100%', height: '100%' }} />
+          </View>
+        ) : null}
+
+        <View>{hastToReactPdf(hastTree, settings.textColor)}</View>
+
+        {pageNumber.enabled ? (
+          <Text
+            fixed
+            style={{
               position: 'absolute',
               bottom: marginBottom / 2 + 4,
               left: 0,
               right: 0,
               textAlign: 'center',
-              fontSize: settings.pageNumber.fontSize,
+              fontSize: pageNumber.fontSize,
               color: '#666666',
               fontFamily: 'Roboto',
-            },
-            render: ({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
-              `${settings.pageNumber.pageLabel} ${pageNumber} ${settings.pageNumber.ofLabel} ${totalPages}`,
-          })
-        : null,
-    ),
+            }}
+            render={({ pageNumber: current, totalPages }) =>
+              `${pageNumber.pageLabel} ${current} ${pageNumber.ofLabel} ${totalPages}`
+            }
+          />
+        ) : null}
+      </Page>
+    </Document>
   );
 }

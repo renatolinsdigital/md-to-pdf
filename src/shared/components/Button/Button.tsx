@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { classNames } from '@shared/helpers/classNames';
 import styles from './Button.module.scss';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -16,21 +17,20 @@ export function Button({
   size = 'md',
   fullWidth = false,
   children,
-  className = '',
+  className,
   ...props
 }: ButtonProps) {
-  const classNames = [
-    styles.button,
-    styles[variant],
-    styles[size],
-    fullWidth ? styles.fullWidth : '',
-    className,
-  ]
-    .filter(Boolean)
-    .join(' ');
-
   return (
-    <button className={classNames} {...props}>
+    <button
+      className={classNames(
+        styles.button,
+        styles[variant],
+        styles[size],
+        fullWidth && styles.fullWidth,
+        className,
+      )}
+      {...props}
+    >
       {children}
     </button>
   );

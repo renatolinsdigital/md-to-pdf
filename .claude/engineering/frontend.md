@@ -36,6 +36,7 @@ Do not introduce Tailwind or other utility-CSS frameworks into this codebase.
   reset.scss
   theme.scss
   helpers.scss
+  mixins.scss
   responsive-mixins.scss
   animations.scss
   index.scss
@@ -44,6 +45,7 @@ Do not introduce Tailwind or other utility-CSS frameworks into this codebase.
 - **reset.scss**: modern CSS reset.
 - **theme.scss**: color palette (primary, secondary, success, warning, error, info, neutral scale), typography scale, spacing scale, border radius tokens, z-index scale.
 - **helpers.scss**: utility classes, only when truly global.
+- **mixins.scss**: shared style patterns as mixins (e.g. form controls), injected into every module like the theme.
 - **responsive-mixins.scss**: media query mixins for mobile, tablet, desktop.
 - **animations.scss**: reusable animation definitions.
 - **index.scss**: imports and wires everything together.

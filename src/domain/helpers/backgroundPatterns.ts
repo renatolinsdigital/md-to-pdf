@@ -1,11 +1,12 @@
 /**
- * 48 fun SVG background patterns for PDF pages.
+ * Fun SVG background patterns for PDF pages.
  *
  * Icons sourced from Material Design Icons (Apache 2.0 license).
- * Each pattern is a 24×24 SVG path that tiles across the page.
- * The icon colour inherits from the document text colour at a
- * configurable opacity (1 – 30 %).
+ * Each pattern is a 24×24 SVG path that tiles across the page in the
+ * user's chosen pattern colour and opacity.
  */
+
+import type { ConverterSettings } from '@domain/hooks/useConverterSettings';
 
 export interface PatternDef {
   id: string;
@@ -265,137 +266,77 @@ export const PATTERNS: PatternDef[] = [
 /*  Helpers                                                           */
 /* ------------------------------------------------------------------ */
 
-/** Convert a hex colour + alpha (0-1) to an rgba() CSS string. */
-function hexToRgba(hex: string, alpha: number): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r},${g},${b},${alpha})`;
-}
+/** The grid the icon paths are drawn in. */
+const ICON_SIZE = 24;
 
-/**
- * Build a full-page tiled SVG pattern (as a base64 data-URL)
- * for a PDF page.
- *
- * @param patternId   – one of the `PATTERNS[].id` values
- * @param color       – hex colour for the icon (usually the text colour)
- * @param opacity     – 0.01 – 0.3
- * @param pageWidth   – page width in pt
- * @param pageHeight  – page height in pt
- * @param elementSize – icon size in pt (default 24)
- * @param gap         – spacing between icons in pt (default 24)
- */
-export function buildPatternSvg(
-  patternId: string,
-  color: string,
-  opacity: number,
-  pageWidth: number,
-  pageHeight: number,
-  elementSize = 24,
-  gap = 24,
-): string | null {
-  if (patternId === 'none') return null;
-
-  const pattern = PATTERNS.find((p) => p.id === patternId);
-  if (!pattern) return null;
-
-  const tileSize = elementSize + gap;
-  const scale = elementSize / 24; // SVG paths are drawn in a 24×24 viewBox
-  const iconOffset = gap / 2; // centre the icon within the tile
-  const fill = hexToRgba(color, opacity);
-
-  // Extend the canvas by one extra tile so edge icons are never clipped.
-  const svgW = pageWidth + tileSize;
-  const svgH = pageHeight + tileSize;
-
-  const svg = [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${svgW}" height="${svgH}" viewBox="0 0 ${svgW} ${svgH}">`,
-    `<defs>`,
-    `<pattern id="p" patternUnits="userSpaceOnUse" width="${tileSize}" height="${tileSize}">`,
-    `<path d="${pattern.path}" transform="translate(${iconOffset},${iconOffset}) scale(${scale})" fill="${fill}"/>`,
-    `</pattern>`,
-    `</defs>`,
-    `<rect width="100%" height="100%" fill="url(#p)"/>`,
-    `</svg>`,
-  ].join('');
-
-  return `data:image/svg+xml;base64,${btoa(svg)}`;
-}
-
-/**
- * Build a tiny single-tile SVG (for the settings panel swatch preview).
- */
-export function buildPatternPreviewSvg(patternId: string, color: string, opacity: number): string {
-  const pattern = PATTERNS.find((p) => p.id === patternId);
-  if (!pattern) return '';
-
-  const fill = hexToRgba(color, opacity);
-
-  const svg = [
-    `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">`,
-    `<path d="${pattern.path}" fill="${fill}"/>`,
-    `</svg>`,
-  ].join('');
-
-  return `data:image/svg+xml;base64,${btoa(svg)}`;
-}
-
-/**
- * Page dimensions in points.
- */
-export const PAGE_DIMENSIONS: Record<string, { width: number; height: number }> = {
+/** Page dimensions in points. Keyed by string: saved settings may hold an unknown size. */
+const PAGE_DIMENSIONS: Record<string, { width: number; height: number }> = {
   A4: { width: 595.28, height: 841.89 },
   LETTER: { width: 612, height: 792 },
   LEGAL: { width: 612, height: 1008 },
 };
 
-/**
- * Rasterise the tiled pattern SVG to a PNG data-URL via an off-screen
- * canvas.  Returns `null` when the pattern is `'none'` or unknown.
- *
- * Because @react-pdf only accepts JPEG/PNG data-URLs, we have to go
- * through canvas rather than passing the SVG directly.
- */
-export async function rasterizePattern(
-  patternId: string,
+/** Convert a `#rgb` or `#rrggbb` colour + alpha (0-1) to an rgba() CSS string. */
+function hexToRgba(hex: string, alpha: number): string {
+  const digits = hex.replace('#', '');
+  const full = digits.length === 3 ? digits.replace(/./g, '$&$&') : digits;
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16));
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function svgDataUrl(svg: string): string {
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
+}
+
+/** A single icon, for the swatches in the settings panel. */
+export function buildPatternPreviewSvg(
+  pattern: PatternDef,
   color: string,
   opacity: number,
-  pageSize: string,
-  elementSize = 24,
-  gap = 24,
-): Promise<string | null> {
-  const dims = PAGE_DIMENSIONS[pageSize];
-  if (!dims) return null;
-
-  const svgUrl = buildPatternSvg(
-    patternId,
-    color,
-    opacity,
-    dims.width,
-    dims.height,
-    elementSize,
-    gap,
+): string {
+  return svgDataUrl(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${ICON_SIZE}" height="${ICON_SIZE}" viewBox="0 0 ${ICON_SIZE} ${ICON_SIZE}">` +
+      `<path d="${pattern.path}" fill="${hexToRgba(color, opacity)}"/>` +
+      `</svg>`,
   );
-  if (!svgUrl) return null;
+}
+
+/**
+ * Renders the selected pattern tiled across a whole page as a PNG data-URL,
+ * or null when no pattern is selected. @react-pdf only embeds JPEG/PNG, so the
+ * SVG is rasterised through an off-screen canvas.
+ */
+export async function rasterizePattern(
+  { patternId, patternColor, opacity, elementSize, gap }: ConverterSettings['backgroundPattern'],
+  pageSize: string,
+): Promise<string | null> {
+  const pattern = PATTERNS.find((p) => p.id === patternId);
+  const page = PAGE_DIMENSIONS[pageSize];
+  if (!pattern || !page) return null;
 
   const tileSize = elementSize + gap;
-  const canvasW = dims.width + tileSize;
-  const canvasH = dims.height + tileSize;
+  const iconOffset = gap / 2; // centres the icon within its tile
+  // One extra tile in each direction so icons at the edges are never clipped
+  const width = page.width + tileSize;
+  const height = page.height + tileSize;
 
-  // Load the SVG into an Image, draw to canvas, export as PNG
   const img = new Image();
-  img.src = svgUrl;
-
-  await new Promise<void>((resolve, reject) => {
-    img.onload = () => resolve();
-    img.onerror = () => reject(new Error('Pattern SVG failed to load'));
-  });
+  img.src = svgDataUrl(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">` +
+      `<defs><pattern id="p" patternUnits="userSpaceOnUse" width="${tileSize}" height="${tileSize}">` +
+      `<path d="${pattern.path}" transform="translate(${iconOffset},${iconOffset}) scale(${elementSize / ICON_SIZE})" fill="${hexToRgba(patternColor, opacity)}"/>` +
+      `</pattern></defs>` +
+      `<rect width="100%" height="100%" fill="url(#p)"/>` +
+      `</svg>`,
+  );
+  await img.decode();
 
   const canvas = document.createElement('canvas');
-  canvas.width = canvasW;
-  canvas.height = canvasH;
-  const ctx = canvas.getContext('2d')!;
-  ctx.drawImage(img, 0, 0, canvasW, canvasH);
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Canvas 2D context is unavailable');
+  ctx.drawImage(img, 0, 0, width, height);
 
   return canvas.toDataURL('image/png');
 }

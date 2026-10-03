@@ -3,6 +3,7 @@ import { ColorPicker } from '@shared/components/ColorPicker/ColorPicker';
 import { Slider } from '@shared/components/Slider/Slider';
 import { Select } from '@shared/components/Select/Select';
 import { Input } from '@shared/components/Input/Input';
+import { classNames } from '@shared/helpers/classNames';
 import type { ConverterSettings } from '@domain/hooks/useConverterSettings';
 import { PATTERNS, buildPatternPreviewSvg } from '@domain/helpers/backgroundPatterns';
 import styles from './PdfSettingsPanel.module.scss';
@@ -22,6 +23,16 @@ const PAGE_SIZE_OPTIONS = [
   { value: 'LEGAL', label: 'Legal (8.5 × 14 in)' },
 ];
 
+const MARGIN_SIDES = [
+  { side: 'top', label: 'Top' },
+  { side: 'right', label: 'Right' },
+  { side: 'bottom', label: 'Bottom' },
+  { side: 'left', label: 'Left' },
+] as const;
+
+/** Swatches are drawn at least this opaque so faint patterns stay recognisable. */
+const MIN_SWATCH_OPACITY = 0.4;
+
 export function PdfSettingsPanel({
   settings,
   onUpdateSettings,
@@ -30,8 +41,9 @@ export function PdfSettingsPanel({
   onUpdateBackgroundPattern,
   onReset,
 }: PdfSettingsPanelProps) {
-  const activePatternId = settings.backgroundPattern.patternId;
-  const patternOpacity = settings.backgroundPattern.opacity;
+  const { patternId: activePatternId, opacity: patternOpacity } = settings.backgroundPattern;
+  const swatchClass = (patternId: string) =>
+    classNames(styles.patternSwatch, activePatternId === patternId && styles.patternSwatchActive);
 
   return (
     <div className={styles.panel}>
@@ -58,7 +70,7 @@ export function PdfSettingsPanel({
         <div className={styles.patternGrid} style={{ backgroundColor: settings.backgroundColor }}>
           <button
             type="button"
-            className={`${styles.patternSwatch} ${activePatternId === 'none' ? styles.patternSwatchActive : ''}`}
+            className={swatchClass('none')}
             onClick={() => onUpdateBackgroundPattern({ patternId: 'none' })}
             title="No pattern"
           >
@@ -78,15 +90,15 @@ export function PdfSettingsPanel({
             <button
               key={p.id}
               type="button"
-              className={`${styles.patternSwatch} ${activePatternId === p.id ? styles.patternSwatchActive : ''}`}
+              className={swatchClass(p.id)}
               onClick={() => onUpdateBackgroundPattern({ patternId: p.id })}
               title={p.label}
             >
               <img
                 src={buildPatternPreviewSvg(
-                  p.id,
+                  p,
                   settings.backgroundPattern.patternColor,
-                  Math.max(patternOpacity, 0.4),
+                  Math.max(patternOpacity, MIN_SWATCH_OPACITY),
                 )}
                 alt={p.label}
                 width={20}
@@ -147,38 +159,17 @@ export function PdfSettingsPanel({
       <div className={styles.section}>
         <h4 className={styles.sectionTitle}>Margins</h4>
         <div className={styles.margins}>
-          <Slider
-            label="Top"
-            value={settings.margins.top}
-            onChange={(v) => onUpdateMargins({ top: v })}
-            min={5}
-            max={50}
-            unit="mm"
-          />
-          <Slider
-            label="Right"
-            value={settings.margins.right}
-            onChange={(v) => onUpdateMargins({ right: v })}
-            min={5}
-            max={50}
-            unit="mm"
-          />
-          <Slider
-            label="Bottom"
-            value={settings.margins.bottom}
-            onChange={(v) => onUpdateMargins({ bottom: v })}
-            min={5}
-            max={50}
-            unit="mm"
-          />
-          <Slider
-            label="Left"
-            value={settings.margins.left}
-            onChange={(v) => onUpdateMargins({ left: v })}
-            min={5}
-            max={50}
-            unit="mm"
-          />
+          {MARGIN_SIDES.map(({ side, label }) => (
+            <Slider
+              key={side}
+              label={label}
+              value={settings.margins[side]}
+              onChange={(v) => onUpdateMargins({ [side]: v })}
+              min={5}
+              max={50}
+              unit="mm"
+            />
+          ))}
         </div>
       </div>
 

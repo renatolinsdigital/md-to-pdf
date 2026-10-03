@@ -1,6 +1,7 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { FiDownload, FiMenu, FiX, FiFileText } from 'react-icons/fi';
 import { Button } from '@shared/components/Button/Button';
+import { readStorage, writeStorage } from '@shared/helpers/storage';
 import { FormattingToolbar } from '@domain/components/FormattingToolbar/FormattingToolbar';
 import { PdfSettingsPanel } from '@domain/components/PdfSettingsPanel/PdfSettingsPanel';
 import { PdfCanvasViewer } from '@domain/components/PdfCanvasViewer/PdfCanvasViewer';
@@ -14,17 +15,8 @@ import styles from './Converter.module.scss';
 
 const STORAGE_KEY = 'md-to-pdf-markdown';
 
-function loadMarkdown(): string {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ?? EXAMPLE_MARKDOWN;
-  } catch {
-    return EXAMPLE_MARKDOWN;
-  }
-}
-
 export function Converter() {
-  const [markdown, setMarkdown] = useState(loadMarkdown);
+  const [markdown, setMarkdown] = useState(() => readStorage(STORAGE_KEY) ?? EXAMPLE_MARKDOWN);
   const [showSettings, setShowSettings] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const {
@@ -35,7 +27,7 @@ export function Converter() {
     updateBackgroundPattern,
     resetSettings,
   } = useConverterSettings();
-  const { pushChange, undo, redo, resetHistory } = useUndoRedo(
+  const { pushChange, resetHistory, handleKeyDown } = useUndoRedo(
     markdown,
     setMarkdown,
     settings.historySize,
@@ -45,39 +37,10 @@ export function Converter() {
   const { pdfBlob, isRendering } = useLivePdf(hastTree, settings);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, markdown);
-    } catch {
-      // Storage full or unavailable - ignore
-    }
+    writeStorage(STORAGE_KEY, markdown);
   }, [markdown]);
 
-  // Keyboard shortcuts for undo/redo within the textarea
-  const handleEditorKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      const key = e.key.toLowerCase();
-      if ((e.ctrlKey || e.metaKey) && key === 'z') {
-        e.preventDefault();
-        if (e.shiftKey) {
-          redo();
-        } else {
-          undo();
-        }
-      }
-      // Also support Ctrl+Y for redo
-      if ((e.ctrlKey || e.metaKey) && key === 'y') {
-        e.preventDefault();
-        redo();
-      }
-    },
-    [undo, redo],
-  );
-
-  const handleGenerate = () => {
-    generatePdf(hastTree, settings);
-  };
-
-  const closeOverlay = useCallback(() => setShowSettings(false), []);
+  const closeSettings = () => setShowSettings(false);
 
   return (
     <div className={styles.converter}>
@@ -91,7 +54,7 @@ export function Converter() {
           <Button
             variant="primary"
             size="sm"
-            onClick={handleGenerate}
+            onClick={() => generatePdf(hastTree, settings)}
             disabled={isGenerating || !markdown.trim()}
           >
             <FiDownload />
@@ -125,7 +88,7 @@ export function Converter() {
             className={styles.editor}
             value={markdown}
             onChange={(e) => pushChange(e.target.value)}
-            onKeyDown={handleEditorKeyDown}
+            onKeyDown={handleKeyDown}
             placeholder="Enter your markdown here..."
             spellCheck={false}
           />
@@ -137,17 +100,21 @@ export function Converter() {
         </div>
       </div>
 
-      {/* Settings overlay */}
       {showSettings && (
         <>
-          <div className={styles.overlay} onClick={closeOverlay} />
+          <div className={styles.overlay} onClick={closeSettings} />
           <div className={styles.settingsDrawer}>
             <div className={styles.drawerHeader}>
               <div>
                 <h2 className={styles.drawerTitle}>Settings</h2>
                 <p className={styles.drawerHint}>Saved automatically in your browser</p>
               </div>
-              <button className={styles.drawerClose} onClick={closeOverlay}>
+              <button
+                type="button"
+                className={styles.drawerClose}
+                onClick={closeSettings}
+                aria-label="Close settings"
+              >
                 <FiX />
               </button>
             </div>

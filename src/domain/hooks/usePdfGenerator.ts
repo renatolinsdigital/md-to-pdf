@@ -1,12 +1,9 @@
 import { useState, useCallback } from 'react';
-import { pdf } from '@react-pdf/renderer';
 import type { Root } from 'hast';
 import type { ConverterSettings } from './useConverterSettings';
-import { useToast } from './useToast';
-import { PdfDocument } from '@domain/components/PdfDocument/PdfDocument';
-import { resolveImages } from '@domain/helpers/resolveImages';
-import { stripImages } from '@domain/helpers/stripImages';
-import { rasterizePattern } from '@domain/helpers/backgroundPatterns';
+import { useToast } from '@shared/hooks/useToast';
+import { downloadBlob } from '@shared/helpers/downloadBlob';
+import { renderPdf } from '@domain/services/renderPdf';
 
 export function usePdfGenerator() {
   const [isGenerating, setIsGenerating] = useState(false);
@@ -20,46 +17,11 @@ export function usePdfGenerator() {
       }
 
       setIsGenerating(true);
-
-      const generate = async (tree: Root): Promise<Blob> => {
-        const [resolvedTree, patternDataUrl] = await Promise.all([
-          resolveImages(structuredClone(tree)),
-          rasterizePattern(
-            settings.backgroundPattern.patternId,
-            settings.backgroundPattern.patternColor,
-            settings.backgroundPattern.opacity,
-            settings.pageSize,
-            settings.backgroundPattern.elementSize,
-            settings.backgroundPattern.gap,
-          ),
-        ]);
-        const doc = PdfDocument({ hastTree: resolvedTree, settings, patternDataUrl });
-        return pdf(doc).toBlob();
-      };
-
       try {
-        let blob: Blob;
-        try {
-          blob = await generate(hastTree);
-        } catch (err) {
-          console.warn('[usePdfGenerator] Retrying without images:', err);
-          blob = await generate(stripImages(hastTree));
-        }
-
-        const url = URL.createObjectURL(blob);
-
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'document.pdf';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-
+        downloadBlob(await renderPdf(hastTree, settings), 'document.pdf');
         showToast('PDF generated successfully!', 'success');
       } catch (error) {
-        console.error('PDF generation error:', error);
+        console.error('[usePdfGenerator] PDF generation failed:', error);
         showToast('Failed to generate PDF. Please try again.', 'error');
       } finally {
         setIsGenerating(false);

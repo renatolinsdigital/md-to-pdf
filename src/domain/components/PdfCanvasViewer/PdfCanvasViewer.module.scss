@@ -1,3 +1,5 @@
+@use '@styles/animations' as *;
+
 .container {
   position: relative;
   flex: 1;
@@ -28,16 +30,7 @@
   justify-content: center;
   background-color: rgba($color-neutral-0, 0.45);
   backdrop-filter: blur(1px);
-  animation: loadingFadeIn 200ms ease;
-}
-
-@keyframes loadingFadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  animation: fadeIn 200ms ease;
 }
 
 .spinner {

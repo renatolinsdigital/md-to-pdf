@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
 import {
   FiMail,
   FiHeart,
@@ -12,50 +12,48 @@ import {
 import { Input } from '@shared/components/Input/Input';
 import { Textarea } from '@shared/components/Textarea/Textarea';
 import { Button } from '@shared/components/Button/Button';
-import { useToast } from '@domain/hooks/useToast';
+import { useToast } from '@shared/hooks/useToast';
+import { classNames } from '@shared/helpers/classNames';
 import styles from './About.module.scss';
 
-interface FormErrors {
-  name?: string;
-  email?: string;
-  message?: string;
+const EMPTY_FORM = { name: '', email: '', message: '' };
+
+type ContactForm = typeof EMPTY_FORM;
+type FormErrors = Partial<Record<keyof ContactForm, string>>;
+
+function validateContactForm(form: ContactForm): FormErrors {
+  const errors: FormErrors = {};
+  if (!form.name.trim()) errors.name = 'Name is required';
+  if (!form.email.trim()) errors.email = 'Email is required';
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+    errors.email = 'Please enter a valid email';
+  if (!form.message.trim()) errors.message = 'Message is required';
+  return errors;
 }
 
 export function About() {
   const { showToast } = useToast();
-  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [formData, setFormData] = useState(EMPTY_FORM);
   const [errors, setErrors] = useState<FormErrors>({});
-
-  const validate = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = 'Please enter a valid email';
-    }
-
-    if (!formData.message.trim()) {
-      newErrors.message = 'Message is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
-    if (!validate()) return;
+    const validationErrors = validateContactForm(formData);
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) return;
 
     showToast('Message sent successfully!', 'success');
-    setFormData({ name: '', email: '', message: '' });
-    setErrors({});
+    setFormData(EMPTY_FORM);
   };
+
+  /** Value, change handler and error for one form field. */
+  const fieldProps = (field: keyof ContactForm) => ({
+    value: formData[field],
+    onChange: (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setFormData((prev) => ({ ...prev, [field]: e.target.value })),
+    error: errors[field],
+  });
 
   return (
     <div className={styles.about}>
@@ -120,7 +118,7 @@ export function About() {
             </p>
           </div>
 
-          <div className={`${styles.guideCard} ${styles.guideCardWide}`}>
+          <div className={classNames(styles.guideCard, styles.guideCardWide)}>
             <FiZap className={styles.guideIcon} />
             <h3>Tips &amp; Tricks</h3>
             <ul className={styles.tipsList}>
@@ -160,29 +158,18 @@ export function About() {
           </div>
 
           <form className={styles.form} onSubmit={handleSubmit} noValidate>
-            <Input
-              label="Name"
-              placeholder="Your name"
-              value={formData.name}
-              onChange={(e) => setFormData((prev) => ({ ...prev, name: e.target.value }))}
-              error={errors.name}
-              fullWidth
-            />
+            <Input label="Name" placeholder="Your name" {...fieldProps('name')} fullWidth />
             <Input
               label="Email"
               type="email"
               placeholder="you@example.com"
-              value={formData.email}
-              onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-              error={errors.email}
+              {...fieldProps('email')}
               fullWidth
             />
             <Textarea
               label="Message"
               placeholder="Tell us what you think..."
-              value={formData.message}
-              onChange={(e) => setFormData((prev) => ({ ...prev, message: e.target.value }))}
-              error={errors.message}
+              {...fieldProps('message')}
               fullWidth
               rows={5}
             />

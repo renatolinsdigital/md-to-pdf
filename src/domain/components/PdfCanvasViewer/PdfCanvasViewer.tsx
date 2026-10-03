@@ -7,103 +7,92 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
+/** Pages are rasterised at twice the container width so they stay crisp on high-DPI screens. */
+const PIXEL_DENSITY = 2;
+const FALLBACK_WIDTH = 600;
+
 interface PdfCanvasViewerProps {
   blob: Blob | null;
   isRendering: boolean;
 }
 
+interface RenderedPdf {
+  blob: Blob;
+  /** One JPEG data-URL per page. */
+  pages: string[];
+}
+
+/** Rasterises every page of the PDF, or resolves to null if cancelled midway. */
+async function renderPages(
+  blob: Blob,
+  targetWidth: number,
+  isCancelled: () => boolean,
+): Promise<string[] | null> {
+  const data = new Uint8Array(await blob.arrayBuffer());
+  if (isCancelled()) return null;
+
+  const doc = await pdfjsLib.getDocument({ data }).promise;
+  try {
+    const pages: string[] = [];
+    for (let i = 1; i <= doc.numPages; i++) {
+      if (isCancelled()) return null;
+
+      const page = await doc.getPage(i);
+      const scale = targetWidth / page.getViewport({ scale: 1 }).width;
+      const viewport = page.getViewport({ scale });
+
+      const canvas = document.createElement('canvas');
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      const canvasContext = canvas.getContext('2d');
+      if (!canvasContext) throw new Error('Canvas 2D context is unavailable');
+
+      await page.render({ canvasContext, viewport, canvas }).promise;
+      pages.push(canvas.toDataURL('image/jpeg', 0.92));
+    }
+    return isCancelled() ? null : pages;
+  } finally {
+    doc.destroy();
+  }
+}
+
 export function PdfCanvasViewer({ blob, isRendering }: PdfCanvasViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [pages, setPages] = useState<string[]>([]);
-  const [renderedBlob, setRenderedBlob] = useState<Blob | null>(null);
-  const scrollTopRef = useRef(0);
-  const genRef = useRef(0);
+  const [rendered, setRendered] = useState<RenderedPdf | null>(null);
+
+  // Forget the old pages as soon as the document is cleared, so they don't
+  // reappear under the spinner when the next document starts rendering.
+  if (!blob && rendered) setRendered(null);
 
   useEffect(() => {
-    const gen = ++genRef.current;
+    if (!blob) return;
 
-    if (!blob) {
-      const id = requestAnimationFrame(() => {
-        if (gen === genRef.current) {
-          setRenderedBlob(null);
-          setPages([]);
-        }
-      });
-      return () => cancelAnimationFrame(id);
-    }
+    let cancelled = false;
+    const container = containerRef.current;
+    const scrollTop = container?.scrollTop ?? 0;
+    const targetWidth = (container?.clientWidth ?? FALLBACK_WIDTH) * PIXEL_DENSITY;
 
-    // Save current scroll position
-    if (containerRef.current) {
-      scrollTopRef.current = containerRef.current.scrollTop;
-    }
+    renderPages(blob, targetWidth, () => cancelled)
+      .then((pages) => {
+        if (!pages) return;
+        setRendered({ blob, pages });
 
-    const render = async () => {
-      const data = new Uint8Array(await blob.arrayBuffer());
-      if (gen !== genRef.current) return;
+        // Keep the reader's place, clamped in case the document got shorter
+        requestAnimationFrame(() => {
+          const c = containerRef.current;
+          if (c) c.scrollTop = Math.min(scrollTop, Math.max(c.scrollHeight - c.clientHeight, 0));
+        });
+      })
+      .catch((err) => console.error('[PdfCanvasViewer] render error:', err));
 
-      const doc = await pdfjsLib.getDocument({ data }).promise;
-      if (gen !== genRef.current) {
-        doc.destroy();
-        return;
-      }
-
-      // Use container width for scale (2x for crisp rendering on high-DPI)
-      const containerWidth = containerRef.current?.clientWidth ?? 600;
-      const images: string[] = [];
-
-      for (let i = 1; i <= doc.numPages; i++) {
-        const page = await doc.getPage(i);
-        if (gen !== genRef.current) {
-          doc.destroy();
-          return;
-        }
-
-        const baseViewport = page.getViewport({ scale: 1 });
-        const scale = (containerWidth * 2) / baseViewport.width;
-        const viewport = page.getViewport({ scale });
-
-        const canvas = document.createElement('canvas');
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        const ctx = canvas.getContext('2d')!;
-
-        await page.render({ canvasContext: ctx, viewport, canvas }).promise;
-        if (gen !== genRef.current) {
-          doc.destroy();
-          return;
-        }
-
-        images.push(canvas.toDataURL('image/jpeg', 0.92));
-      }
-
-      if (gen !== genRef.current) {
-        doc.destroy();
-        return;
-      }
-
-      setRenderedBlob(blob);
-      setPages(images);
-      doc.destroy();
-
-      // Restore scroll - clamped to new max if PDF got shorter
-      requestAnimationFrame(() => {
-        const c = containerRef.current;
-        if (c) {
-          const max = c.scrollHeight - c.clientHeight;
-          c.scrollTop = max > 0 ? Math.min(scrollTopRef.current, max) : 0;
-        }
-      });
+    return () => {
+      cancelled = true;
     };
-
-    render().catch((err) => {
-      console.error('[PdfCanvasViewer] render error:', err);
-    });
   }, [blob]);
 
-  // Derive loading state: true when a blob exists but hasn't finished rendering yet
-  const internalRendering = blob !== null && renderedBlob !== blob;
-  const showLoading = isRendering || internalRendering;
+  const pages = rendered?.pages ?? [];
   const hasContent = pages.length > 0;
+  const showLoading = isRendering || (blob !== null && rendered?.blob !== blob);
 
   return (
     <div ref={containerRef} className={styles.container}>

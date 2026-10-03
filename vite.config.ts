@@ -21,7 +21,7 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        additionalData: `@use "sass:color";\n@use "@styles/theme" as *;\n@use "@styles/responsive-mixins" as *;\n`,
+        additionalData: `@use "sass:color";\n@use "@styles/theme" as *;\n@use "@styles/responsive-mixins" as *;\n@use "@styles/mixins" as *;\n`,
       },
     },
   },

@@ -22,6 +22,6 @@ describe('Footer', () => {
 
     await user.click(screen.getByRole('button', { name: /donate/i }));
 
-    expect(screen.getByText(/buy our cat a treat/i)).toBeInTheDocument();
+    expect(screen.getByText(/buy my cat a treat/i)).toBeInTheDocument();
   });
 });

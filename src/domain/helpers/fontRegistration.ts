@@ -1,5 +1,11 @@
 import { Font } from '@react-pdf/renderer';
 
+const ROBOTO_CDN = 'https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest';
+
+function roboto(fontWeight: 400 | 700, fontStyle: 'normal' | 'italic') {
+  return { src: `${ROBOTO_CDN}/latin-${fontWeight}-${fontStyle}.ttf`, fontWeight, fontStyle };
+}
+
 let fontsRegistered = false;
 
 export function registerFonts() {
@@ -8,24 +14,10 @@ export function registerFonts() {
   Font.register({
     family: 'Roboto',
     fonts: [
-      {
-        src: 'https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-400-normal.ttf',
-        fontWeight: 400,
-      },
-      {
-        src: 'https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-700-normal.ttf',
-        fontWeight: 700,
-      },
-      {
-        src: 'https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-400-italic.ttf',
-        fontWeight: 400,
-        fontStyle: 'italic',
-      },
-      {
-        src: 'https://cdn.jsdelivr.net/fontsource/fonts/roboto@latest/latin-700-italic.ttf',
-        fontWeight: 700,
-        fontStyle: 'italic',
-      },
+      roboto(400, 'normal'),
+      roboto(700, 'normal'),
+      roboto(400, 'italic'),
+      roboto(700, 'italic'),
     ],
   });
 

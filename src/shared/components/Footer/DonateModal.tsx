@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { FiX, FiHeart, FiShield } from 'react-icons/fi';
+import { classNames } from '@shared/helpers/classNames';
 import { DonationCat } from './DonationCat';
 import styles from './DonateModal.module.scss';
 
 interface DonateModalProps {
-  open: boolean;
   onClose: () => void;
 }
 
@@ -19,7 +19,7 @@ interface AmountButtonProps {
 function AmountButton({ amount, active, onClick }: AmountButtonProps) {
   return (
     <button
-      className={`${styles.amountBtn} ${active ? styles.amountBtnActive : ''}`}
+      className={classNames(styles.amountBtn, active && styles.amountBtnActive)}
       onClick={onClick}
       type="button"
     >
@@ -29,34 +29,28 @@ function AmountButton({ amount, active, onClick }: AmountButtonProps) {
   );
 }
 
-export function DonateModal({ open, onClose }: DonateModalProps) {
+export function DonateModal({ onClose }: DonateModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [selectedAmount, setSelectedAmount] = useState<number | null>(5);
   const [customValue, setCustomValue] = useState('');
   const [isCustom, setIsCustom] = useState(false);
   const [smileTrigger, setSmileTrigger] = useState(0);
 
-  // Sync dialog element with open prop & reset form on open
+  // showModal() (rather than the `open` attribute) gives focus trapping and Escape-to-close
   useEffect(() => {
     const dialog = dialogRef.current;
-    if (!dialog) return;
+    if (dialog && !dialog.open) dialog.showModal();
+  }, []);
 
-    if (open && !dialog.open) {
-      dialog.showModal();
-    } else if (!open && dialog.open) {
-      dialog.close();
-    }
-  }, [open]);
+  const amount = isCustom ? Number(customValue) : (selectedAmount ?? 0);
+  const canDonate = amount > 0;
 
-  // Close on backdrop click
   const handleBackdropClick = (e: MouseEvent<HTMLDialogElement>) => {
-    if (e.target === dialogRef.current) {
-      onClose();
-    }
+    if (e.target === dialogRef.current) onClose();
   };
 
-  const handlePresetClick = (amount: number) => {
-    setSelectedAmount(amount);
+  const handlePresetClick = (preset: number) => {
+    setSelectedAmount(preset);
     setIsCustom(false);
     setCustomValue('');
     setSmileTrigger((n) => n + 1);
@@ -67,18 +61,19 @@ export function DonateModal({ open, onClose }: DonateModalProps) {
     setSelectedAmount(null);
   };
 
+  const handleCustomChange = (value: string) => {
+    const digits = value.replace(/\D/g, '').slice(0, 4);
+    setCustomValue(digits);
+    if (digits) setSmileTrigger((n) => n + 1);
+  };
+
   const handleDonate = () => {
-    const amount = isCustom ? parseFloat(customValue) || 0 : selectedAmount || 0;
     window.open(
       `https://www.paypal.com/donate/?amount=${amount}&hosted_button_id=MOCK_BUTTON_ID`,
       '_blank',
       'noopener,noreferrer',
     );
   };
-
-  const donateEnabled = isCustom ? parseFloat(customValue) > 0 : selectedAmount !== null;
-
-  if (!open) return null;
 
   return (
     <dialog
@@ -88,19 +83,16 @@ export function DonateModal({ open, onClose }: DonateModalProps) {
       onClose={onClose}
     >
       <div className={styles.modal}>
-        {/* Close */}
         <button className={styles.closeBtn} onClick={onClose} type="button" aria-label="Close">
           <FiX />
         </button>
 
-        {/* Header area with cat */}
         <div className={styles.header}>
           <div className={styles.catWrapper}>
             <DonationCat className={styles.cat} smileTrigger={smileTrigger} />
           </div>
         </div>
 
-        {/* Text */}
         <h2 className={styles.title}>
           Buy my cat a treat <span className={styles.emoji}>🐾</span>
         </h2>
@@ -109,20 +101,20 @@ export function DonateModal({ open, onClose }: DonateModalProps) {
           joy.
         </p>
 
-        {/* Preset amounts */}
         <div className={styles.amountGrid}>
-          {PRESET_AMOUNTS.map((amount) => (
+          {PRESET_AMOUNTS.map((preset) => (
             <AmountButton
-              key={amount}
-              amount={amount}
-              active={!isCustom && selectedAmount === amount}
-              onClick={() => handlePresetClick(amount)}
+              key={preset}
+              amount={preset}
+              active={!isCustom && selectedAmount === preset}
+              onClick={() => handlePresetClick(preset)}
             />
           ))}
         </div>
 
-        {/* Custom amount input */}
-        <div className={`${styles.customInputWrapper} ${isCustom ? styles.customInputActive : ''}`}>
+        <div
+          className={classNames(styles.customInputWrapper, isCustom && styles.customInputActive)}
+        >
           <span className={styles.customPrefix}>$</span>
           <input
             className={styles.customInput}
@@ -133,27 +125,20 @@ export function DonateModal({ open, onClose }: DonateModalProps) {
             placeholder="Other amount"
             value={customValue}
             onFocus={handleCustomFocus}
-            onChange={(e) => {
-              const val = e.target.value.replace(/\D/g, '').slice(0, 4);
-              setCustomValue(val);
-              if (val) setSmileTrigger((n) => n + 1);
-            }}
+            onChange={(e) => handleCustomChange(e.target.value)}
           />
         </div>
 
-        {/* Donate CTA */}
         <button
           className={styles.donateBtn}
           onClick={handleDonate}
-          disabled={!donateEnabled}
+          disabled={!canDonate}
           type="button"
         >
           <FiHeart className={styles.donateBtnIcon} />
-          Donate{donateEnabled && !isCustom && selectedAmount ? ` $${selectedAmount}` : ''}
-          {donateEnabled && isCustom && parseFloat(customValue) > 0 ? ` $${customValue}` : ''}
+          Donate{canDonate && ` $${amount}`}
         </button>
 
-        {/* Trust badges */}
         <div className={styles.trustRow}>
           <FiShield className={styles.trustIcon} />
           <span>Secure payment via PayPal</span>

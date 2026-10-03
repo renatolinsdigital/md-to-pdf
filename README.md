@@ -63,12 +63,16 @@ src/
 ├── app/              # App shell (App.tsx, App.module.scss)
 ├── domain/           # Business logic
 │   ├── components/   # Domain components (FormattingToolbar, PdfCanvasViewer, PdfDocument, PdfSettingsPanel)
-│   ├── helpers/      # Pure functions (hastToPdf, parseInlineStyle, backgroundPatterns, fontRegistration, ...)
-│   └── hooks/        # Custom hooks (useConverterSettings, useMarkdownParser, usePdfGenerator, useLivePdf, useUndoRedo, useToast)
+│   ├── helpers/      # Pure functions (parseMarkdown, hastToPdf, applyFormat, backgroundPatterns, resolveImages, ...)
+│   ├── hooks/        # Custom hooks (useConverterSettings, useMarkdownParser, usePdfGenerator, useLivePdf, useUndoRedo)
+│   └── services/     # renderPdf: HAST + settings → PDF blob
 ├── pages/            # Route pages (Home, Converter, About)
 ├── routes/           # Route configuration with lazy loading
-├── shared/           # Reusable UI components (Button, Input, Textarea, Select, Slider, ColorPicker, Toast, Navbar, Footer)
-├── global-styles/    # Global styles and design tokens (theme.scss, animations.scss, ...)
+├── shared/           # Reusable, domain-agnostic code
+│   ├── components/   # UI components (Button, Input, Textarea, Select, Slider, ColorPicker, Toast, Navbar, Footer)
+│   ├── helpers/      # classNames, storage, downloadBlob
+│   └── hooks/        # usePopover, useToast
+├── global-styles/    # Global styles, design tokens and mixins (theme.scss, mixins.scss, animations.scss, ...)
 └── tests/            # Test setup
 ```
 

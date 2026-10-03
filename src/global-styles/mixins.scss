@@ -1,0 +1,56 @@
+@use './theme' as *;
+
+// ── Form Controls ──────────────────────────────────────────
+// Shared look of text inputs, textareas and selects.
+
+@mixin focus-ring($color: $color-primary-500) {
+  outline: none;
+  border-color: $color;
+  box-shadow: 0 0 0 3px rgba($color, 0.15);
+}
+
+@mixin form-field {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+}
+
+@mixin form-label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  color: $color-neutral-700;
+}
+
+@mixin form-control {
+  border: 1px solid $color-neutral-300;
+  border-radius: $radius-md;
+  font-size: $font-size-sm;
+  color: $color-neutral-800;
+  background-color: $color-neutral-0;
+  transition: all $transition-fast;
+
+  &::placeholder {
+    color: $color-neutral-400;
+  }
+
+  &:hover {
+    border-color: $color-neutral-400;
+  }
+
+  &:focus {
+    @include focus-ring;
+  }
+}
+
+@mixin form-control-error {
+  border-color: $color-error;
+
+  &:focus {
+    @include focus-ring($color-error);
+  }
+}
+
+@mixin form-error {
+  font-size: $font-size-xs;
+  color: $color-error;
+}

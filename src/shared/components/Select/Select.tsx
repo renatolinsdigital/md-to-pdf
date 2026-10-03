@@ -1,4 +1,5 @@
-import type { SelectHTMLAttributes } from 'react';
+import { useId, type SelectHTMLAttributes } from 'react';
+import { classNames } from '@shared/helpers/classNames';
 import styles from './Select.module.scss';
 
 interface SelectOption {
@@ -13,11 +14,19 @@ interface SelectProps extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'onC
   onChange: (value: string) => void;
 }
 
-export function Select({ label, options, value, onChange, className = '', ...props }: SelectProps) {
+export function Select({ label, options, value, onChange, className, id, ...props }: SelectProps) {
+  const generatedId = useId();
+  const selectId = id ?? generatedId;
+
   return (
-    <div className={`${styles.wrapper} ${className}`}>
-      {label && <label className={styles.label}>{label}</label>}
+    <div className={classNames(styles.wrapper, className)}>
+      {label && (
+        <label htmlFor={selectId} className={styles.label}>
+          {label}
+        </label>
+      )}
       <select
+        id={selectId}
         className={styles.select}
         value={value}
         onChange={(e) => onChange(e.target.value)}

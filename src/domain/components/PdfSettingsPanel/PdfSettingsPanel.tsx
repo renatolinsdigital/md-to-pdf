@@ -62,6 +62,13 @@ export function PdfSettingsPanel({
             color={settings.textColor}
             onChange={(color) => onUpdateSettings({ textColor: color })}
           />
+          {activePatternId !== 'none' && (
+            <ColorPicker
+              label="Pattern"
+              color={settings.backgroundPattern.patternColor}
+              onChange={(color) => onUpdateBackgroundPattern({ patternColor: color })}
+            />
+          )}
         </div>
       </div>
 
@@ -110,11 +117,6 @@ export function PdfSettingsPanel({
         </div>
         {activePatternId !== 'none' && (
           <>
-            <ColorPicker
-              label="Pattern color"
-              color={settings.backgroundPattern.patternColor}
-              onChange={(color) => onUpdateBackgroundPattern({ patternColor: color })}
-            />
             <Slider
               label="Pattern opacity"
               value={Math.round(patternOpacity * 100)}

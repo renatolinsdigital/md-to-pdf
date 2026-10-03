@@ -40,4 +40,17 @@ describe('FormattingToolbar', () => {
 
     expect(textarea.value).toBe('**hello** world');
   });
+
+  it('removes the formatting when the same action is applied to already formatted text', async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+
+    const textarea = screen.getByRole('textbox') as HTMLTextAreaElement;
+    await user.type(textarea, '**hello** world');
+    textarea.setSelectionRange(2, 7);
+
+    await user.click(screen.getByRole('button', { name: /bold/i }));
+
+    expect(textarea.value).toBe('hello world');
+  });
 });

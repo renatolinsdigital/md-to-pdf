@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { FiX, FiHeart, FiShield } from 'react-icons/fi';
 import { classNames } from '@shared/helpers/classNames';
 import { DonationCat } from './DonationCat';
+import { DonationEmail } from './DonationEmail';
 import styles from './DonateModal.module.scss';
 
 interface DonateModalProps {
@@ -9,6 +10,19 @@ interface DonateModalProps {
 }
 
 const PRESET_AMOUNTS = [3, 5, 10, 25];
+
+const PAYPAL_DONATION_EMAIL = 'renato.digital.crafts@gmail.com';
+
+// The UI shows amounts in dollars, so the currency is pinned to match
+function buildDonationUrl(amount: number): string {
+  const params = new URLSearchParams({
+    business: PAYPAL_DONATION_EMAIL,
+    amount: String(amount),
+    currency_code: 'USD',
+    item_name: 'MD to PDF donation',
+  });
+  return `https://www.paypal.com/donate/?${params}`;
+}
 
 interface AmountButtonProps {
   amount: number;
@@ -68,11 +82,7 @@ export function DonateModal({ onClose }: DonateModalProps) {
   };
 
   const handleDonate = () => {
-    window.open(
-      `https://www.paypal.com/donate/?amount=${amount}&hosted_button_id=MOCK_BUTTON_ID`,
-      '_blank',
-      'noopener,noreferrer',
-    );
+    window.open(buildDonationUrl(amount), '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -138,6 +148,8 @@ export function DonateModal({ onClose }: DonateModalProps) {
           <FiHeart className={styles.donateBtnIcon} />
           Donate{canDonate && ` $${amount}`}
         </button>
+
+        <DonationEmail email={PAYPAL_DONATION_EMAIL} className={styles.emailRow} />
 
         <div className={styles.trustRow}>
           <FiShield className={styles.trustIcon} />

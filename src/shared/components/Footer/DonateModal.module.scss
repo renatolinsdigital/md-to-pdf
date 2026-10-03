@@ -347,6 +347,12 @@
   font-size: $font-size-md;
 }
 
+// ── Direct-to-email alternative ──
+.emailRow {
+  margin-bottom: $spacing-4;
+  animation: fadeUp 400ms 630ms ease both;
+}
+
 // ── Trust row ──
 .trustRow {
   display: flex;

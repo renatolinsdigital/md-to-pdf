@@ -7,6 +7,7 @@
  */
 
 import type { ConverterSettings } from '@domain/hooks/useConverterSettings';
+import { CUSTOM_PATTERN_ID } from '@domain/helpers/customPattern';
 
 export interface PatternDef {
   id: string;
@@ -277,15 +278,24 @@ const PAGE_DIMENSIONS: Record<string, { width: number; height: number }> = {
 };
 
 /** Convert a `#rgb` or `#rrggbb` colour + alpha (0-1) to an rgba() CSS string. */
-function hexToRgba(hex: string, alpha: number): string {
+export function hexToRgba(hex: string, alpha: number): string {
   const digits = hex.replace('#', '');
   const full = digits.length === 3 ? digits.replace(/./g, '$&$&') : digits;
   const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16));
   return `rgba(${r},${g},${b},${alpha})`;
 }
 
-function svgDataUrl(svg: string): string {
-  return `data:image/svg+xml;base64,${btoa(svg)}`;
+/** URI-encoded rather than base64, because `btoa` throws on non-Latin-1 text in uploaded SVGs. */
+export function svgDataUrl(svg: string): string {
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+function buildIconSvg(pattern: PatternDef, fill: string): string {
+  return (
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${ICON_SIZE}" height="${ICON_SIZE}" viewBox="0 0 ${ICON_SIZE} ${ICON_SIZE}">` +
+    `<path d="${pattern.path}" fill="${fill}"/>` +
+    `</svg>`
+  );
 }
 
 /** A single icon, for the swatches in the settings panel. */
@@ -294,25 +304,32 @@ export function buildPatternPreviewSvg(
   color: string,
   opacity: number,
 ): string {
-  return svgDataUrl(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${ICON_SIZE}" height="${ICON_SIZE}" viewBox="0 0 ${ICON_SIZE} ${ICON_SIZE}">` +
-      `<path d="${pattern.path}" fill="${hexToRgba(color, opacity)}"/>` +
-      `</svg>`,
-  );
+  return svgDataUrl(buildIconSvg(pattern, hexToRgba(color, opacity)));
+}
+
+/** The selected icon's markup in its own colours, or null when nothing drawable is selected. */
+function selectedIconSvg({
+  patternId,
+  customSvg,
+}: ConverterSettings['backgroundPattern']): string | null {
+  if (patternId === CUSTOM_PATTERN_ID) return customSvg;
+  const pattern = PATTERNS.find((p) => p.id === patternId);
+  return pattern ? buildIconSvg(pattern, '#000') : null;
 }
 
 /**
  * Renders the selected pattern tiled across a whole page as a PNG data-URL,
  * or null when no pattern is selected. @react-pdf only embeds JPEG/PNG, so the
- * SVG is rasterised through an off-screen canvas.
+ * icon is tiled on an off-screen canvas.
  */
 export async function rasterizePattern(
-  { patternId, patternColor, opacity, elementSize, gap }: ConverterSettings['backgroundPattern'],
+  backgroundPattern: ConverterSettings['backgroundPattern'],
   pageSize: string,
 ): Promise<string | null> {
-  const pattern = PATTERNS.find((p) => p.id === patternId);
+  const { patternColor, opacity, elementSize, gap } = backgroundPattern;
+  const iconSvg = selectedIconSvg(backgroundPattern);
   const page = PAGE_DIMENSIONS[pageSize];
-  if (!pattern || !page) return null;
+  if (!iconSvg || !page) return null;
 
   const tileSize = elementSize + gap;
   const iconOffset = gap / 2; // centres the icon within its tile
@@ -321,14 +338,7 @@ export async function rasterizePattern(
   const height = page.height + tileSize;
 
   const img = new Image();
-  img.src = svgDataUrl(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">` +
-      `<defs><pattern id="p" patternUnits="userSpaceOnUse" width="${tileSize}" height="${tileSize}">` +
-      `<path d="${pattern.path}" transform="translate(${iconOffset},${iconOffset}) scale(${elementSize / ICON_SIZE})" fill="${hexToRgba(patternColor, opacity)}"/>` +
-      `</pattern></defs>` +
-      `<rect width="100%" height="100%" fill="url(#p)"/>` +
-      `</svg>`,
-  );
+  img.src = svgDataUrl(iconSvg);
   await img.decode();
 
   const canvas = document.createElement('canvas');
@@ -336,7 +346,16 @@ export async function rasterizePattern(
   canvas.height = height;
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas 2D context is unavailable');
-  ctx.drawImage(img, 0, 0, width, height);
+
+  for (let y = 0; y < height; y += tileSize) {
+    for (let x = 0; x < width; x += tileSize) {
+      ctx.drawImage(img, x + iconOffset, y + iconOffset, elementSize, elementSize);
+    }
+  }
+  // Recolour every drawn pixel, so multi-coloured uploads follow the pattern colour and opacity too
+  ctx.globalCompositeOperation = 'source-in';
+  ctx.fillStyle = hexToRgba(patternColor, opacity);
+  ctx.fillRect(0, 0, width, height);
 
   return canvas.toDataURL('image/png');
 }

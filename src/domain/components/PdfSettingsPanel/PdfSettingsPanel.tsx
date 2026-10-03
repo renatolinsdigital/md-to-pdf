@@ -1,3 +1,4 @@
+import { useRef, useState, type ChangeEvent } from 'react';
 import { Button } from '@shared/components/Button/Button';
 import { ColorPicker } from '@shared/components/ColorPicker/ColorPicker';
 import { Slider } from '@shared/components/Slider/Slider';
@@ -5,7 +6,17 @@ import { Select } from '@shared/components/Select/Select';
 import { Input } from '@shared/components/Input/Input';
 import { classNames } from '@shared/helpers/classNames';
 import type { ConverterSettings } from '@domain/hooks/useConverterSettings';
-import { PATTERNS, buildPatternPreviewSvg } from '@domain/helpers/backgroundPatterns';
+import {
+  PATTERNS,
+  buildPatternPreviewSvg,
+  hexToRgba,
+  svgDataUrl,
+} from '@domain/helpers/backgroundPatterns';
+import {
+  CUSTOM_PATTERN_ID,
+  InvalidSvgError,
+  readCustomSvgFile,
+} from '@domain/helpers/customPattern';
 import styles from './PdfSettingsPanel.module.scss';
 
 interface PdfSettingsPanelProps {
@@ -41,9 +52,45 @@ export function PdfSettingsPanel({
   onUpdateBackgroundPattern,
   onReset,
 }: PdfSettingsPanelProps) {
-  const { patternId: activePatternId, opacity: patternOpacity } = settings.backgroundPattern;
+  const {
+    patternId: activePatternId,
+    opacity: patternOpacity,
+    patternColor,
+    customSvg,
+  } = settings.backgroundPattern;
+  const swatchOpacity = Math.max(patternOpacity, MIN_SWATCH_OPACITY);
   const swatchClass = (patternId: string) =>
     classNames(styles.patternSwatch, activePatternId === patternId && styles.patternSwatchActive);
+
+  const iconInputRef = useRef<HTMLInputElement>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const uploadLabel = customSvg ? 'Replace custom SVG icon' : 'Upload SVG icon';
+
+  const handleIconUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // so choosing the same file again still fires a change
+    if (!file) return;
+
+    try {
+      const svg = await readCustomSvgFile(file);
+      setUploadError(null);
+      onUpdateBackgroundPattern({ customSvg: svg, patternId: CUSTOM_PATTERN_ID });
+    } catch (error) {
+      if (error instanceof InvalidSvgError) {
+        setUploadError(error.message);
+      } else {
+        console.error('Failed to read the uploaded SVG', error);
+        setUploadError('The file could not be read.');
+      }
+    }
+  };
+
+  const removeCustomIcon = () => {
+    onUpdateBackgroundPattern({
+      customSvg: null,
+      ...(activePatternId === CUSTOM_PATTERN_ID && { patternId: 'none' }),
+    });
+  };
 
   return (
     <div className={styles.panel}>
@@ -102,11 +149,7 @@ export function PdfSettingsPanel({
               title={p.label}
             >
               <img
-                src={buildPatternPreviewSvg(
-                  p,
-                  settings.backgroundPattern.patternColor,
-                  Math.max(patternOpacity, MIN_SWATCH_OPACITY),
-                )}
+                src={buildPatternPreviewSvg(p, patternColor, swatchOpacity)}
                 alt={p.label}
                 width={20}
                 height={20}
@@ -114,7 +157,52 @@ export function PdfSettingsPanel({
               />
             </button>
           ))}
+          {customSvg && (
+            <button
+              type="button"
+              className={swatchClass(CUSTOM_PATTERN_ID)}
+              onClick={() => onUpdateBackgroundPattern({ patternId: CUSTOM_PATTERN_ID })}
+              title="Custom icon"
+              aria-label="Custom icon"
+            >
+              {/* Masked rather than shown as-is, so it takes the pattern colour like the PDF does */}
+              <span
+                className={styles.customIcon}
+                style={{
+                  maskImage: `url("${svgDataUrl(customSvg)}")`,
+                  backgroundColor: hexToRgba(patternColor, swatchOpacity),
+                }}
+              />
+            </button>
+          )}
+          <button
+            type="button"
+            className={classNames(styles.patternSwatch, styles.uploadSwatch)}
+            onClick={() => iconInputRef.current?.click()}
+            title={uploadLabel}
+            aria-label={uploadLabel}
+          >
+            +
+          </button>
+          <input
+            ref={iconInputRef}
+            type="file"
+            accept=".svg,image/svg+xml"
+            className={styles.hiddenInput}
+            onChange={handleIconUpload}
+            data-testid="pattern-icon-input"
+          />
         </div>
+        {uploadError && (
+          <p className={styles.uploadError} role="alert">
+            {uploadError}
+          </p>
+        )}
+        {customSvg && (
+          <Button variant="ghost" size="sm" onClick={removeCustomIcon}>
+            Remove custom icon
+          </Button>
+        )}
         {activePatternId !== 'none' && (
           <>
             <Slider

@@ -9,6 +9,8 @@ export interface ConverterSettings {
     elementSize: number;
     gap: number;
     patternColor: string;
+    /** Normalised markup of the user's uploaded icon, drawn when `patternId` is 'custom'. */
+    customSvg: string | null;
   };
   margins: {
     top: number;
@@ -37,6 +39,7 @@ export const DEFAULT_SETTINGS: ConverterSettings = {
     elementSize: 22,
     gap: 20,
     patternColor: '#000000',
+    customSvg: null,
   },
   margins: { top: 20, right: 20, bottom: 20, left: 20 },
   pageSize: 'A4',

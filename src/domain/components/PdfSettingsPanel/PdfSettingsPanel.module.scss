@@ -108,3 +108,30 @@
   display: block;
   pointer-events: none;
 }
+
+.customIcon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+  pointer-events: none;
+}
+
+.uploadSwatch {
+  border-style: dashed;
+  background-color: $color-neutral-0;
+  color: $color-neutral-500;
+  font-size: $font-size-md;
+  line-height: 1;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.uploadError {
+  font-size: $font-size-xs;
+  color: $color-error;
+}
